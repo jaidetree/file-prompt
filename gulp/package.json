@@ -1,0 +1,34 @@
+{
+  "name": "file-prompt-gulp",
+  "version": "0.0.1",
+  "description": "Gulp for file-prompt",
+  "main": "index.js",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/jayzawrotny/file-prompt.git"
+  },
+  "keywords": [
+    "file",
+    "interactive",
+    "cli",
+    "prompt",
+    "file-selector"
+  ],
+  "author": "Jay Zawrotny <jayzawrotny@gmail.com>",
+  "license": "GPL-2.0",
+  "bugs": {
+    "url": "https://github.com/jayzawrotny/file-prompt/issues"
+  },
+  "homepage": "https://github.com/jayzawrotny/file-prompt#readme",
+  "devDependencies": {
+    "gulp-babel": "^6.1.0",
+    "gulp-eslint": "^1.0.0",
+    "gulp-mocha": "^2.1.3",
+    "gulp-plumber": "^1.0.1",
+    "gulp-util": "^3.0.7",
+    "gulp-watch": "^4.3.5",
+    "gutil-waterlog": "0.0.4",
+    "minimist": "^1.2.0",
+    "through2": "^2.0.0"
+  }
+}
