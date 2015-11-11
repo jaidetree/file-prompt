@@ -4,7 +4,7 @@ let paths = {
       cwd: process.env.INIT_CWD,
       gulp: {},
       dirs: {
-        base: ''
+        base: '../'
       },
       js: {},
     },

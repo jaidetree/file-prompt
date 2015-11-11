@@ -222,7 +222,7 @@ let config = {
 function lint (stream) {
   return stream
     .pipe(plumber({
-      errorHandler: () => {}
+      errorHandler: false
     }))
     /** Log that we are linting the file */
     .pipe(tap((file) => {

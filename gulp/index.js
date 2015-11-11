@@ -1,14 +1,6 @@
-/* eslint no-console: 0 */
-import './tasks';
-import gulp from 'gulp';
+// First change directory to gulp
+process.chdir(__dirname);
 
-/**
- * Use module.exports here because the transpiler will not transpile
- * the export of this file
- */
-
-/** Load tasks with our instance of gulp */
-
-gulp.task('air', function () {
-    console.log('b(^_^)v');
-});
+// Require the babel hook
+require('babel-core/register')(require('./config/babel.json'));
+require('./gulpfile.js');

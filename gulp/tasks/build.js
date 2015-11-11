@@ -16,10 +16,8 @@ import tap from '../lib/tap';
 
 // Config
 import paths from '../config/paths';
+import babelConfig from '../config/babel';
 
-var config = {
-      presets: ['es2015']
-    };
 
 /**
  * Lint
@@ -37,7 +35,7 @@ function build (stream) {
         .data(paths.fromJs(file.path))
         .send();
     }))
-    .pipe(babel(config))
+    .pipe(babel(babelConfig))
     .pipe(gulp.dest(paths.get.js.dest))
     .pipe(tap((file) => {
       log.success('build')
