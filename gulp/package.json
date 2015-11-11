@@ -23,12 +23,12 @@
   "devDependencies": {
     "gulp-babel": "^6.1.0",
     "gulp-eslint": "^1.0.0",
-    "gulp-mocha": "^2.1.3",
     "gulp-plumber": "^1.0.1",
     "gulp-util": "^3.0.7",
     "gulp-watch": "^4.3.5",
     "gutil-waterlog": "0.0.4",
     "minimist": "^1.2.0",
-    "through2": "^2.0.0"
+    "through2": "^2.0.0",
+    "gulp-jest": "git://github.com/jayzawrotny/gulp-jest.git#v0.4.1"
   }
 }

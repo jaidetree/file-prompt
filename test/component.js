@@ -1,6 +1,7 @@
 /**
  * Component Class Unit Test
  */
+import jest from 'jest-cli';
 import EventEmitter from 'events';
 import assert from 'assert';
 import Component from '../src/component';

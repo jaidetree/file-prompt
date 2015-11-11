@@ -3,11 +3,18 @@ import _ from 'underscore';
 import EventEmitter from 'events';
 
 /**
+ * Create Listener
  * Private method to add listener
  * Decided to use a simple object literal to allow use of underscore collection
  * methods to traverse the array.
+ *
+ * @param {object} obj - Object to create the listener for
+ * @param {string} event - Event name to listen for
+ * @param {function} callback - Event handler
+ * @param {object} context - Context to call the callback with
+ * @returns {object} A listener object
  */
-function createListener(obj, event, callback, context) {
+function createListener (obj, event, callback, context) {
   let listener = {
         id: _.uniqueId('l'),
         obj: obj,
@@ -27,8 +34,13 @@ function createListener(obj, event, callback, context) {
  * @class
  * @property {object} state - State of the component instance
  * @property {object} properties - Initial properties of the component
+ * @property {array} listeners - Collection of current listeners
  */
 class Component extends EventEmitter {
+
+  state = {};
+  props = {};
+  listeners = [];
 
   /**
    * Constructor
@@ -39,7 +51,6 @@ class Component extends EventEmitter {
    */
   constructor (props) {
     super();
-    this.listeners = [];
     this.props = this.getDefaultProps();
 
     // If we have props extend our default props with it
@@ -175,7 +186,7 @@ class Component extends EventEmitter {
     }
   }
 
-  /** 
+  /**
    * Listen To
    * Adds a listener to an observable object
    *
@@ -186,16 +197,16 @@ class Component extends EventEmitter {
    * @param {function} callback - Callback to trigger from event
    * @param {object} [context] - Optional context to call the trigger with
    */
-  listenTo (obj, event, callback, context=this) {
+  listenTo (obj, event, callback, context = this) {
     /** Keep track of what we're listening to */
     this.listeners.push(createListener(obj, event, callback, context));
     obj.on(event, callback.bind(context));
-    obj.on('removeListener', (event, callback) => {
-      this.stopListening(obj, event, callback);
+    obj.on('removeListener', (eventName, handler) => {
+      this.stopListening(obj, eventName, handler);
     });
   }
 
-  /** 
+  /**
    * Listen To Once
    * Adds a listener to an observable object that executes only once
    *
@@ -213,8 +224,8 @@ class Component extends EventEmitter {
       this.listeners = _.without(this.listeners, listener);
       callback.call(context, ...args);
     });
-    obj.on('removeListener', (event, callback) => {
-      this.stopListening(obj, event, callback);
+    obj.on('removeListener', (eventName, handler) => {
+      this.stopListening(obj, eventName, handler);
     });
   }
 
@@ -225,7 +236,7 @@ class Component extends EventEmitter {
    *
    * @method
    * @public
-   * @param {string} [args.event] - Event name to stop listening for
+   * @param {string} [event] - Event name to stop listening for
    * @param {function} [callback] - Event handler to remove
    * @param {object} [context] - Context of handlers to stop listening to
    */
@@ -239,11 +250,14 @@ class Component extends EventEmitter {
    *
    * @method
    * @public
+   * @param {string} event - Name of the event to listen to
+   * @param {function} callback - Event handler
+   * @param {context} [context] - Optional context to call handler with
    * @returns {*} Result of listener being added
    */
   on (event, callback, context=this) {
     this.listeners.push(createListener(this, event, callback, context));
-    return super.on(event, callback.bind(context));
+    return super.on(event, callback);
   }
 
   /**
@@ -356,7 +370,7 @@ class Component extends EventEmitter {
    */
   stopListening (...args) {
     let criteria = {},
-        listeners = this.listeners, 
+        listeners = this.listeners,
         names = ['obj', 'event', 'callback', 'context'];
 
     /** For truthy values attach them to the criteria object */

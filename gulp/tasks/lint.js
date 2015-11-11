@@ -199,7 +199,7 @@ let config = {
         'space-before-blocks': 1,                      // require or disallow space before blocks (off by default)
         'object-curly-spacing': [2, 'always'],         // require or disallow spaces inside curly braces (off by default)
         'space-in-parens': 1,                          // require or disallow spaces inside parentheses (off by default)
-        'space-infix-ops': 1,                          // require spaces around operators
+        'space-infix-ops': 0,                          // require spaces around operators
         'space-return-throw-case': 1,                  // require a space after return, throw, and case
         'space-unary-ops': 1,                          // Require or disallow spaces before/after unary operators (words on by default, nonwords off by default)
         'spaced-comment': 1,                           // require or disallow a space immediately following the // in a line comment (off by default)

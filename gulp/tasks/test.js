@@ -6,7 +6,7 @@
  * gulp clean
 */
 import gulp from 'gulp';
-import mocha from 'gulp-mocha';
+import jest from 'gulp-jest';
 import plumber from 'gulp-plumber';
 import watch from 'gulp-watch';
 
@@ -22,8 +22,9 @@ paths.get.test.watch = [
 function test () {
   return gulp.src(paths.get.test.src, { read: false })
     .pipe(plumber())
-    .pipe(mocha({
-      bail: true
+    .pipe(jest({
+      bail: true,
+      rootDir: './'
     }));
 }
 
