@@ -15,9 +15,8 @@ import log from 'gutil-waterlog';
 import tap from '../lib/tap';
 
 // Config
-import paths from '../config/paths';
+import project from '../config/project';
 import babelConfig from '../config/babel';
-
 
 /**
  * Lint
@@ -32,15 +31,15 @@ function build (stream) {
     .pipe(tap((file) => {
       log.start('build')
         .action('Building JS file')
-        .data(paths.fromJs(file.path))
+        .data(project.fromJsTo(file.path))
         .send();
     }))
     .pipe(babel(babelConfig))
-    .pipe(gulp.dest(paths.get.js.dest))
+    .pipe(gulp.dest(project.paths.js.dest))
     .pipe(tap((file) => {
       log.success('build')
         .action('Compiled JS File')
-        .data(paths.from(paths.get.js.dest, file.path))
+        .data(project.from(project.paths.js.dest, file.path))
         .send();
     }));
 }
@@ -50,7 +49,7 @@ function build (stream) {
  * Runs a watcher on all src js files and builds them when changed.
  */
 gulp.task('watch-build', () => {
-  return watch(paths.get.js.src, (file) => {
+  return watch(project.paths.js.src, (file) => {
     return build(gulp.src(file.path));
   });
 });
@@ -61,10 +60,10 @@ gulp.task('watch-build', () => {
  */
 gulp.task('build', () => {
   var opts = minimist(process.argv.slice(2)),
-      file = opts.file || opts.f || paths.get.js.src;
+      file = opts.file || opts.f || project.paths.js.src;
 
-  if (file !== paths.get.js.src) {
-    file = paths.resolve(file);
+  if (file !== project.paths.js.src) {
+    file = project.resolve(file);
   }
 
   return build(gulp.src(file));

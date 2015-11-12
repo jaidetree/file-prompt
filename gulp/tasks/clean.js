@@ -9,10 +9,12 @@ import gulp from 'gulp';
 import del from 'del';
 import path from 'path';
 import log from 'gutil-waterlog';
-import paths from '../config/paths';
+import project from '../config/project';
+
+let paths = project.paths;
 
 paths.clean = [
-  paths.to(paths.get.js.dest, '**')
+  project.to(paths.js.dest, '**')
 ];
 
 gulp.task('clean', () => {
@@ -25,7 +27,7 @@ gulp.task('clean', () => {
 
     log.success('clean')
       .action('Cleaned')
-      .data(dir)
+      .data(project.from(paths.cwd, dir))
       .action('directory')
       .send();
 

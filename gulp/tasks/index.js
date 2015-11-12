@@ -5,8 +5,7 @@ import glob from 'glob';
 import path from 'path';
 import log from 'gutil-waterlog';
 
-
-var files = [],
+let files = [],
     tasks = {},
     options;
 

@@ -5,27 +5,41 @@
  * @example
  * gulp clean
 */
+import glob from 'glob';
 import gulp from 'gulp';
-import jest from 'gulp-jest';
-import plumber from 'gulp-plumber';
+import jest from 'jest-cli';
 import watch from 'gulp-watch';
 
-import paths from '../config/paths';
+import project from '../config/project';
 
-paths.get.test = {};
-paths.get.test.src = paths.to('test', '*.js');
-paths.get.test.watch = [
-  paths.get.js.src,
-  paths.get.test.src
+// Jest API config
+// See docs [jest-cli]{@link https://github.com/facebook/jest}
+const CONFIG = {
+  bail: true,
+  rootDir: project.paths.cwd
+};
+
+project.paths.test = {
+  src: project.to('test', '*.js')
+};
+
+project.paths.test.watch = [
+  project.paths.js.src,
+  project.paths.test.src
 ];
 
+
 function test () {
-  return gulp.src(paths.get.test.src, { read: false })
-    .pipe(plumber())
-    .pipe(jest({
-      bail: true,
-      rootDir: './'
-    }));
+  let files = glob.sync(project.paths.test.src, { cwd: project.project.cwd }),
+      argv = CONFIG;
+
+  argv._ = files;
+
+  console.log(files);
+
+  jest.runCli(argv, project.project.cwd, function () {
+    // Tests complete
+  });
 }
 
 gulp.task('test', () => {
@@ -37,9 +51,7 @@ gulp.task('test', () => {
  * Runs a watcher on all src js files and tests them when changed.
  */
 gulp.task('watch-test', () => {
-  return watch(paths.get.test.watch, () => {
+  return watch(project.paths.test.watch, () => {
     return test();
   });
 });
-
-export default paths;
