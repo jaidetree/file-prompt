@@ -25,7 +25,7 @@
     // RECOMMENDED
     // -----------------------------------------------------------------------
 
-    "comma-dangle": 2, // ............................... Disallow or enforce trailing commas (recommended) 
+    "comma-dangle": 2, // ............................... Disallow or enforce trailing commas (recommended)
     "no-cond-assign": 2, // ............................. Disallow assignment in conditional expressions (recommended)
     "no-console": 0, // ................................. Disallow use of console in the node environment (recommended
     "no-constant-condition": 2, // ...................... Disallow use of constant expressions in conditions (recommended)
@@ -71,7 +71,7 @@
     "consistent-return": 1, // .......................... Require return statements to either always or never specify values
     "curly": [1, "multi-line", "consistent"], // ........ Specify curly brace conventions for all control statements
     "default-case": 0, // ............................... Require default case in switch statements
-    "dot-location": 2, // ............................... Enforces consistent newlines before or after dots
+    "dot-location": [2, "property"], // ................. Enforces consistent newlines before or after dots
     "dot-notation": 1, // ............................... Encourages use of dot notation whenever possible
     "eqeqeq": 2, // ..................................... Require the use of === and !== (fixable)
     "guard-for-in": 1, // ............................... Make sure for-in loops have an if statement
@@ -170,8 +170,12 @@
     "func-style": [1, "declaration", { // ............... Enforce use of function declarations or expressions
       "allowArrowFunctions": true
     }],
-    "indent": [1, 2, { // ............................... Specify tab or space width for your code (fixable)
-      "VariableDeclarator": 2
+    "indent": [2, 2, { // ............................... Specify tab or space width for your code (fixable)
+      "VariableDeclarator": {
+        "let": 2,
+        "var": 2,
+        "const": 3
+      }
     }],
     "jsx-quotes": [1, "prefer-double"], // .............. Specify whether double or single quotes should be used in JSX attributes
     "key-spacing": 1, // ................................ Enforce spacing between keys and values in object literal properties
@@ -238,7 +242,7 @@
     // -----------------------------------------------------------------------
 
     "arrow-body-style": [1, "always"], // ........................... Require braces in arrow function body
-    "arrow-parens": [1, "as-needed"], // ................ Require parens in arrow function arguments
+    "arrow-parens": [1, "always"], // ................ Require parens in arrow function arguments
     "arrow-spacing": 1, // .............................. Require space before/after arrow function's arrow (fixable)
     "constructor-super": 1, // .......................... Verify calls of super() in constructors
     "generator-star-spacing": [1, "before"], // ......... Enforce spacing around the * in generator functions (fixable)
@@ -253,7 +257,7 @@
     "prefer-const": 0,  // .............................. Suggest using const declaration for variables that are never modified after declared
     "prefer-reflect": 1, // ............................. Suggest using Reflect methods where applicable
     "prefer-spread": 1, // .............................. Suggest using the spread operator instead of .apply().
-    "prefer-template": 1, // ............................ Suggest using template literals instead of strings concatenation
+    "prefer-template": 0, // ............................ Suggest using template literals instead of strings concatenation
     "require-yield": 1, // .............................. Disallow generator functions that do not have yield
 
     // -----------------------------------------------------------------------

@@ -16,12 +16,12 @@ import EventEmitter from 'events';
  */
 function createListener (obj, event, callback, context) {
   let listener = {
-        id: _.uniqueId('l'),
-        obj: obj,
-        event: event,
-        callback: callback,
-        context: context
-      };
+    id: _.uniqueId('l'),
+    obj,
+    event,
+    callback,
+    context
+  };
 
   return listener;
 }
@@ -36,7 +36,7 @@ function createListener (obj, event, callback, context) {
  * @property {object} properties - Initial properties of the component
  * @property {array} listeners - Collection of current listeners
  */
-class Component extends EventEmitter {
+export default class Component extends EventEmitter {
 
   state = {};
   props = {};
@@ -182,7 +182,7 @@ class Component extends EventEmitter {
 
     /** Call the callback supplying this context */
     if (typeof callback === 'function') {
-      callback.call(this);
+      Reflect.apply(callback, this);
     }
   }
 
@@ -219,10 +219,11 @@ class Component extends EventEmitter {
    */
   listenToOnce (obj, event, callback, context=this) {
     let listener = createListener(obj, event, callback, context);
+
     obj.once(event, (...args) => {
       /** Remove this from our list of listeners */
       this.listeners = _.without(this.listeners, listener);
-      callback.call(context, ...args);
+      Reflect.apply(context, args);
     });
     obj.on('removeListener', (eventName, handler) => {
       this.stopListening(obj, eventName, handler);
@@ -291,7 +292,7 @@ class Component extends EventEmitter {
    * @private
    */
   renderComponent () {
-    process.stdout.write(this.render().toString() + '\n');
+    process.stdout.write(`${this.render().toString()} \n`);
   }
 
   /**
@@ -320,17 +321,19 @@ class Component extends EventEmitter {
     /** See if the component should re-render or not */
     if (this.componentShouldUpdate(next.props, next.state)) {
       this.componentWillUpdate(next.props, next.state);
+
       /** Update a */
       this[key] = next[key];
       this.renderComponent();
       this.componentDidUpdate(prev.props, prev.state);
-    } else {
+    }
+    else {
       this[key] = next[key];
     }
 
     /** Call the callback supplying this context */
     if (typeof callback === 'function') {
-      callback.call(this);
+      Reflect.apply(callback, this);
     }
   }
 
@@ -395,5 +398,3 @@ class Component extends EventEmitter {
   }
 
 }
-
-export default Component;

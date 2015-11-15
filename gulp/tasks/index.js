@@ -26,7 +26,7 @@ files = files.filter((file) => {
    * If the file is this file filter it out
    */
   if (file.indexOf('index.js') > -1) {
-      return false;
+    return false;
   }
 
   return true;
@@ -41,11 +41,12 @@ files.forEach((filename) => {
 
   try {
     tasks[name] = require(path.join(__dirname, name));
-  } catch (e) {
+  }
+  catch (e) {
     log.error('tasks')
       .action(`Could not load ${filename}`)
       .line()
-      .text(e)
+      .text(e.stack || e.message)
       .send();
   }
 });

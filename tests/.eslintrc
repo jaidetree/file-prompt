@@ -6,6 +6,10 @@
     "expect": false,
     "it": false,
     "jasmine": false,
+    "jest": false,
     "phantom": false
+  },
+  "rules": {
+    "no-magic-numbers": 0
   }
 }

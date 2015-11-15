@@ -1,0 +1,18 @@
+{
+  "rootDir": "../../",
+  "scriptPreprocessor": "",
+  "testDirectoryName": "tests",
+  "testPathDirs": [
+    "tests"
+  ],
+  "testPathIgnorePatterns": [
+    "node_modules",
+    "tests/lib"
+  ],
+  "unmockedModulePathPatterns": [
+    "<rootDir>tests/lib",
+    "<rootDir>/node_modules/react",
+    "<rootDir>/node_modules/react-dom",
+    "<rootDir>/node_modules/react-addons-test-utils"
+  ]
+}

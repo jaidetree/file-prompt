@@ -1,3 +1,4 @@
+/* eslint no-process-env: 0 */
 import fs from 'fs';
 import gutil from 'gulp-util';
 import path from 'path';
@@ -11,11 +12,12 @@ import stripComments from 'strip-json-comments';
  */
 export class Project {
   paths = {
-    cwd: path.resolve(__dirname, '../../'),
-    gulp: {},
+    cwd: process.env.INIT_CWD,
+    gulp: path.resolve(__dirname, '..'),
     dirs: {
       base: '../'
-    }
+    },
+    root: path.resolve(__dirname, '..', '..')
   };
 
   /**
@@ -30,16 +32,32 @@ export class Project {
   }
 
   /**
+   * Contains
+   * Determine if the base contains the given filepath.
+   *
+   * @method
+   * @param {string} base - Base file
+   * @param {string} filepath - Path to test for
+   * @returns {boolean} If filepath was found in the base
+   */
+  contains (base, filepath) {
+    return base.toLowerCase().includes(filepath.toLowerCase());
+  }
+
+  /**
    * Get Config
    * Joins x amount of arguments
    *
    * @method
    * @public
-   * @param {string} filepath - Config file to load
+   * @param {string} filename - Config file to load
    * @returns {object} JSON Object of config file
    */
-  getJSONConfig (filepath) {
-    return JSON.parse(stripComments(fs.readFileSync(path.resolve(this.paths.cwd, filepath))));
+  getJSONConfig (filename) {
+    let filepath = path.resolve(this.paths.root, filename),
+        file = stripComments(fs.readFileSync(filepath).toString());
+
+    return JSON.parse(file);
   }
 
   /**
@@ -82,8 +100,8 @@ export class Project {
    * @param {string} filepath - File path to resolve
    * @returns {string} Resolved filepath
    */
-  resolve (basepath, filepath) {
-    var file = this.join(basepath, filepath);
+  resolve (...args) {
+    var file = this.join(...args);
 
     /**
      * See if it's just current working directory + filepath
@@ -91,14 +109,16 @@ export class Project {
     try {
       fs.accessSync(file);
       return file;
-    } catch (e) {
-      file = this.to(basepath, file);
+    }
+    catch (e) {
+      file = this.to(...args);
     }
 
     try {
       fs.accessSync(file);
       return file;
-    } catch (e) {
+    }
+    catch (e) {
       throw new gutil.PluginError('PATHS', `Could not find file: ${file}`);
     }
   }

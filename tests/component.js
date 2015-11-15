@@ -6,34 +6,32 @@ jest.autoMockOff();
 console.log('TEST');
 
 import EventEmitter from 'events';
-import assert from 'assert';
 import Component from '../src/component';
 import StdoutInterceptor from './lib/stdout_interceptor';
 
-
 const DEFINED_METHODS = [
-        'constructor',
-        'componentDidMount',
-        'componentDidUpdate',
-        'componentShouldUpdate',
-        'componentWillMount',
-        'componentWillUnmount',
-        'componentWillUpdate',
-        'getDefaultProps',
-        'getInitialState',
-        'forceUpdate',
-        'listenTo',
-        'listenToOnce',
-        'off',
-        'on',
-        'remove',
-        'render',
-        'renderComponent',
-        'set',
-        'setProps',
-        'setState',
-        'stopListening',
-      ];
+  'constructor',
+  'componentDidMount',
+  'componentDidUpdate',
+  'componentShouldUpdate',
+  'componentWillMount',
+  'componentWillUnmount',
+  'componentWillUpdate',
+  'getDefaultProps',
+  'getInitialState',
+  'forceUpdate',
+  'listenTo',
+  'listenToOnce',
+  'off',
+  'on',
+  'remove',
+  'render',
+  'renderComponent',
+  'set',
+  'setProps',
+  'setState',
+  'stopListening'
+];
 
 let ceptor = new StdoutInterceptor(),
     TESTFLAGS = {
@@ -69,6 +67,7 @@ class TestComponent extends Component {
 
   componentShouldUpdate (...args) {
     let output = super.componentShouldUpdate(...args);
+
     comlink.emit('componentShouldUpdate', output, ...args);
     return output;
   }
@@ -91,7 +90,7 @@ class TestComponent extends Component {
   renderComponent () {
     /** If we want to capture output separately */
     if (!TESTFLAGS.captureFromRender) {
-        return super.renderComponent();
+      return super.renderComponent();
     }
 
     ceptor.capture();
@@ -225,14 +224,14 @@ describe('Component', () => {
   //     let component = new TestComponent();
   //     assert.equal(component.componentShouldUpdate(), true);
   //   });
-
+    
   //   it('Should return false with current props & state', () => {
   //     let component = new TestComponent(),
   //         props = component.props,
   //         state = component.state;
   //     assert.equal(component.componentShouldUpdate(props, state), false);
   //   });
-
+    
   //   it('Should return true with new props or state', () => {
   //     let component = new TestComponent(),
   //         props = component.props,
@@ -347,7 +346,7 @@ describe('Component', () => {
   //       assert.equal(nextState.name, 'Jerry');
   //     });
 
-  //     * Finally trigger the function
+  //     * Finally trigger the function 
   //     component.setState({
   //       name: 'Jerry'
   //     }, function () {
@@ -379,7 +378,7 @@ describe('Component', () => {
   //     component.setState({
   //       name: 'Jerry'
   //     }, function () {
-  //         TESTFLAGS.delayRender = false;
+  //         TESTFLAGS.delayRender = false; 
   //     });
   //   });
   // });
@@ -447,7 +446,7 @@ describe('Component', () => {
   //     });
   //   });
   // });
-
+  
   // describe('#listenTo()', () => {
   //   it('Should create a listener on comlink', (done) => {
   //     let component = new TestComponent();
@@ -535,7 +534,7 @@ describe('Component', () => {
 
   //     assert.equal(callCount, 1);
   //   });
-
+    
 
   //   it('Should remove itself from component listeners', () => {
   //     let component = new TestComponent(),
@@ -561,5 +560,9 @@ describe('Component', () => {
 
   //     component.on('off_test');
   //   });
+    
   // });
+  
+  
+
 });

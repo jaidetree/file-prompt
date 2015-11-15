@@ -31,6 +31,7 @@ function lint (stream) {
     .pipe(plumber({
       errorHandler: false
     }))
+
     /** Log that we are linting the file */
     .pipe(tap((file) => {
       log.start('lint')
@@ -38,14 +39,16 @@ function lint (stream) {
         .data(project.fromJsTo(file.path))
         .send();
     }))
+
     /** Lint the file */
     .pipe(eslint(config))
+
     /** Output the results */
     .pipe(eslint.formatEach())
     .pipe(tap((file) => {
       /** There were some errors so lets not display a success message */
       if (file.eslint && file.eslint.messages.length > 0) {
-          return;
+        return;
       }
 
       /** We made it through the linter with no errors, good job */
@@ -74,9 +77,8 @@ gulp.task('lint', () => {
   var opts = minimist(process.argv.slice(2)),
       file = opts.file || opts.f || project.paths.js.src;
 
-
   if (file !== project.paths.js.src) {
-    file = project.resolve(project.get.cwd, file);
+    file = project.resolve(project.paths.root, file);
   }
 
   return lint(gulp.src(file));
