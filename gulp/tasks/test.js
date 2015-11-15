@@ -28,30 +28,28 @@ project.paths.test.watch = [
   project.paths.test.src
 ];
 
-
+/**
+ * Reusable test function
+ */
 function test () {
-  let files = glob.sync(project.paths.test.src, { cwd: project.project.cwd }),
+  let files = glob.sync(project.paths.test.src, { cwd: project.paths.cwd }),
       argv = CONFIG;
 
   argv._ = files;
 
   console.log(files);
 
-  jest.runCli(argv, project.project.cwd, function () {
+  jest.runCli(argv, project.project.cwd, () => {
     // Tests complete
   });
 }
 
-gulp.task('test', () => {
-  return test();
-});
+gulp.task('test', () => test());
 
 /**
  * Task Watch Test
  * Runs a watcher on all src js files and tests them when changed.
  */
 gulp.task('watch-test', () => {
-  return watch(project.paths.test.watch, () => {
-    return test();
-  });
+  return watch(project.paths.test.watch, () => test());
 });

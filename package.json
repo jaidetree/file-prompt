@@ -27,6 +27,7 @@
     "underscore": "^1.8.3"
   },
   "devDependencies": {
+    "eslint-plugin-react": "^3.8.0",
     "file-prompt-gulp": "file:gulp"
   }
 }
