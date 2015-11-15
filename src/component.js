@@ -15,15 +15,16 @@ import EventEmitter from 'events';
  * @returns {object} A listener object
  */
 function createListener (obj, event, callback, context) {
-  let listener = {
+  let handler = callback.bind(context);
+
+  return {
     id: _.uniqueId('l'),
     obj,
     event,
+    handler,
     callback,
     context
   };
-
-  return listener;
 }
 
 /**
@@ -36,11 +37,11 @@ function createListener (obj, event, callback, context) {
  * @property {object} properties - Initial properties of the component
  * @property {array} listeners - Collection of current listeners
  */
-export default class Component extends EventEmitter {
+class Component extends EventEmitter {
 
   state = {};
   props = {};
-  listeners = [];
+  _listeners = [];
 
   /**
    * Constructor
@@ -199,11 +200,10 @@ export default class Component extends EventEmitter {
    */
   listenTo (obj, event, callback, context = this) {
     /** Keep track of what we're listening to */
-    this.listeners.push(createListener(obj, event, callback, context));
-    obj.on(event, callback.bind(context));
-    obj.on('removeListener', (eventName, handler) => {
-      this.stopListening(obj, eventName, handler);
-    });
+    let listener = createListener(obj, event, callback, context);
+
+    this._listeners.push(listener);
+    obj.on(event, listener.handler);
   }
 
   /**
@@ -220,13 +220,12 @@ export default class Component extends EventEmitter {
   listenToOnce (obj, event, callback, context=this) {
     let listener = createListener(obj, event, callback, context);
 
+    this._listeners.push(listener);
+
     obj.once(event, (...args) => {
       /** Remove this from our list of listeners */
-      this.listeners = _.without(this.listeners, listener);
-      Reflect.apply(context, args);
-    });
-    obj.on('removeListener', (eventName, handler) => {
-      this.stopListening(obj, eventName, handler);
+      this.stopListening(obj, event, callback);
+      listener.handler(...args);
     });
   }
 
@@ -257,8 +256,10 @@ export default class Component extends EventEmitter {
    * @returns {*} Result of listener being added
    */
   on (event, callback, context=this) {
-    this.listeners.push(createListener(this, event, callback, context));
-    return super.on(event, callback);
+    let listener = createListener(this, event, callback, context);
+
+    this._listeners.push(listener);
+    return super.on(event, listener.handler);
   }
 
   /**
@@ -369,11 +370,11 @@ export default class Component extends EventEmitter {
    *
    * @method
    * @public
-   * @param {[type]} [varname] [description]
+   * @param {...*} criteria - Obj, event, callback context to search for
    */
   stopListening (...args) {
     let criteria = {},
-        listeners = this.listeners,
+        listeners = this._listeners.slice(),
         names = ['obj', 'event', 'callback', 'context'];
 
     /** For truthy values attach them to the criteria object */
@@ -392,9 +393,11 @@ export default class Component extends EventEmitter {
 
     /** Tell the obj to stop listening for events */
     listeners.forEach((listener) => {
-      listener.obj.removeListener(listener.event, listener.callback);
-      this.listeners = this.listeners.splice(this.listeners.indexOf(listener), 1);
+      listener.obj.removeListener(listener.event, listener.handler);
+      this._listeners.splice(this._listeners.indexOf(listener), 1);
     });
   }
 
 }
+
+export default Component;

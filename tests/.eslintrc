@@ -1,6 +1,10 @@
 {
   "globals": {
     "$": false,
+    "after": false,
+    "afterEach": false,
+    "before": false,
+    "beforeEach": false,
     "casper": false,
     "describe": false,
     "expect": false,
@@ -10,6 +14,7 @@
     "phantom": false
   },
   "rules": {
-    "no-magic-numbers": 0
+    "no-magic-numbers": 0,
+    "max-nested-callbacks": 0
   }
 }

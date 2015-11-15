@@ -3,7 +3,7 @@
   "scriptPreprocessor": "",
   "testDirectoryName": "tests",
   "testPathDirs": [
-    "tests"
+    "tests/jest"
   ],
   "testPathIgnorePatterns": [
     "node_modules",

@@ -1,6 +1,6 @@
 /**
  * Test
- * Runs our mocha tests
+ * Runs our jest tests
  *
  * @example
  * gulp clean
@@ -51,7 +51,9 @@ function test () {
   let files = [],
       config = {
         config: project.paths.jest.config,
-        verbose: true
+        verbose: true,
+        useStderr: true,
+        noStackTrace: false
       };
 
   // Read the files
