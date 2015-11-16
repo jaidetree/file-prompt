@@ -32,7 +32,7 @@ export default class StdoutInterceptor {
    * @public
    */
   capture () {
-    let output = this.output = [];
+    this.output = [];
 
     process.stdout._write = (chunk, enc, callback) => {
       this.output.push(chunk);
@@ -53,7 +53,7 @@ export default class StdoutInterceptor {
   /**
    * Release
    * Stop capturing the output
-   * 
+   *
    * @method
    * @returns {string} A cleaned up colorless output
    */
@@ -83,12 +83,13 @@ export default class StdoutInterceptor {
    * @param {string} [filename] - Optional filename to write to
    * @returns {Promise} a promise called when the file is written.
    */
-  writeFile(filename) {
-    let content = this.toString();
+  writeFile (filename) {
+    let content = this.toString(),
+        filepath = filename;
 
     /** Create output directory in dir if not specified */
-    if (!filename) {
-      filename = path.resolve(__dirname, '..', '..', 'output', 'console.log');
+    if (!filepath) {
+      filepath = path.resolve(__dirname, '..', '..', 'output', 'console.log');
     }
 
     /** Return a promise for when the file is written */
@@ -101,7 +102,8 @@ export default class StdoutInterceptor {
 
           resolve(filename, content);
         });
-      } catch (e) {
+      }
+      catch (e) {
         reject(e);
       }
     });

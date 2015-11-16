@@ -5,10 +5,6 @@
  * @class
  */
 class Prompt {
-  get () {
-    console.log('Hello World');
-  }
 }
 
 export default Prompt;
-

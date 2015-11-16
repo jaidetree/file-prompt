@@ -18,12 +18,12 @@ let paths = project.paths,
     args = minimist(process.argv.slice(2));
 
 paths.jest = {
-  dir: 'tests',
+  dir: project.to('tests'),
   files: '**/*.js',
 
   // Jest API config
   // See docs [jest-cli]{@link https://github.com/facebook/jest}
-  config: 'gulp/config/jest.json'
+  config: project.join('config', 'jest.json')
 };
 
 // If we have a f or file argument lets add it
@@ -32,7 +32,7 @@ if (args.f || args.file) {
 }
 
 // Are we in the test dir?
-if (project.contains(paths.cwd, project.resolve(paths.root, paths.jest.dir))) {
+if (project.contains(paths.cwd, project.resolve(paths.gulp, paths.jest.dir))) {
   paths.jest.dir = project.from(paths.root, paths.cwd);
 }
 
@@ -52,12 +52,14 @@ function test () {
       config = {
         config: project.paths.jest.config,
         verbose: true,
-        useStderr: true,
-        noStackTrace: false
+        noStackTrace: false,
+        json: true
       };
 
+  console.log(paths.jest);
+
   // Read the files
-  files = glob.sync(project.paths.jest.src, { cwd: project.paths.root });
+  files = glob.sync(paths.jest.src, { cwd: paths.gulp });
 
   // Filter out library files
   config._ = files.filter((file) => {
@@ -73,15 +75,19 @@ function test () {
     config._ = [project.paths.jest.src];
   }
 
-  process.chdir(project.paths.root);
-
   log.start('TEST')
     .action('Running tests')
     .data(paths.jest.src)
     .send();
 
   // Found this in the jest-cli source :P
-  jest.runCLI(config, project.paths.root);
+  try {
+    jest.runCLI(config, project.paths.gulp, (...args) => {
+    });
+  }
+  catch (e) {
+    console.log(e);
+  }
 }
 
 gulp.task('test:jest', () => {

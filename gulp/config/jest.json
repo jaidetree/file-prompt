@@ -1,18 +1,21 @@
 {
-  "rootDir": "../../",
-  "scriptPreprocessor": "",
+  "cacheDirectory": "<rootDir>/cache",
+  "cache": false,
+  "preprocessCachingDisabled": true,
+  "rootDir": "../",
+  "scriptPreprocessor": "<rootDir>/lib/babel-preprocessor.js",
   "testDirectoryName": "tests",
   "testPathDirs": [
-    "tests/jest"
+    "../tests/jest"
   ],
   "testPathIgnorePatterns": [
-    "node_modules",
-    "tests/lib"
+    "../node_modules",
+    "../tests/lib"
   ],
   "unmockedModulePathPatterns": [
-    "<rootDir>tests/lib",
-    "<rootDir>/node_modules/react",
-    "<rootDir>/node_modules/react-dom",
-    "<rootDir>/node_modules/react-addons-test-utils"
+    "<rootDir>/../tests/lib",
+    "<rootDir>/../node_modules/react",
+    "<rootDir>/../node_modules/react-dom",
+    "<rootDir>/../node_modules/react-addons-test-utils"
   ]
 }

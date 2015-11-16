@@ -3,6 +3,8 @@
  */
 jest.autoMockOff();
 
+console.log(process.cwd());
+
 import EventEmitter from 'events';
 import Component from '../../src/component';
 import StdoutInterceptor from '../lib/stdout_interceptor';

@@ -1,10 +1,7 @@
-/**
- * Component Class Unit Test
- */
+import expect from 'expect';
 import EventEmitter from 'events';
-import Component from '../../src/component';
-import StdoutInterceptor from '../lib/stdout_interceptor';
-import expect from '../../gulp/node_modules/expect';
+import Component from 'src/component';
+import StdoutInterceptor from 'tests/lib/stdout_interceptor';
 
 const DEFINED_METHODS = [
   'constructor',
