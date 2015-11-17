@@ -1,8 +1,9 @@
 import expect from 'expect';
-import stream from 'stream';
 import { colors } from 'gulp-util';
 
-import Prompt from 'src/prompt';
+import Prompt from '../src/prompt';
+import MockStdin from './lib/mock_stdin';
+import MockStdout from './lib/mock_stdout';
 
 const DEFINED_METHODS = [
         'constructor',
@@ -12,44 +13,6 @@ const DEFINED_METHODS = [
         'formatText'
       ],
       PROMPT_TEXT = 'Is this working';
-
-class MockStdin extends stream.Readable {
-  constructor (...args) {
-    super(...args);
-  }
-
-  destroy () {
-    if (this.destroyed) return false;
-
-    this.destroyed = true;
-    this.emit('destroy');
-    this.close();
-    return true;
-  }
-
-  close () {
-    this.pause();
-    this.removeAllListeners();
-    this.emit('close');
-  }
-
-  _read () {
-    this.push(new Buffer('Test string\n', 'ascii').toString());
-  }
-}
-
-class MockStdout extends stream.Writable {
-  output = [];
-
-  constructor (...args) {
-    super(...args);
-  }
-
-  _write (chunk, enc, next) {
-    this.emit('data', chunk);
-    next();
-  }
-}
 
 describe('Prompt', () => {
   describe('#constructor()', () => {
@@ -100,28 +63,63 @@ describe('Prompt', () => {
 
   describe('#beckon()', () => {
     it('Should prompt the user for input', (done) => {
-      let stdin = new MockStdin(),
+      let stdin = new MockStdin(['Test string']),
           stdout = new MockStdout(),
-          prompt;
+          expected = colors.blue.bold(PROMPT_TEXT),
+          prompt = new Prompt(PROMPT_TEXT, {
+            stdout,
+            stdin
+          });
 
-      prompt = new Prompt(PROMPT_TEXT, {
-        stdout,
-        stdin
-      });
-
-      prompt.beckon()
+      return prompt.beckon()
         .then((answer) => {
-          prompt.close();
           expect(answer).toBe('Test string');
+          stdout.write(answer);
+          expect(stdout.output).toBe(`${expected}Test string`);
         }, (e) => {
           throw e;
         })
         .then(done, done);
     });
 
+    it('Should accept an empty response', (done) => {
+      let stdin = new MockStdin(['']),
+          stdout = new MockStdout(),
+          expected = colors.blue.bold(PROMPT_TEXT),
+          prompt = new Prompt(PROMPT_TEXT, {
+            stdout,
+            stdin
+          });
+
+      return prompt.beckon()
+        .then((answer) => {
+          expect(answer).toBe('');
+          stdout.write(answer);
+          expect(stdout.output).toBe(expected);
+        }, (e) => {
+          throw e;
+        })
+        .then(done, done);
+    });
+
+    it('Should fail when input stream is closed', (done) => {
+      let stdin = new MockStdin(['']),
+          stdout = new MockStdout(),
+          prompt = new Prompt(PROMPT_TEXT, {
+            stdout,
+            stdin
+          });
+
+      prompt.beckon()
+        .catch((err) => {
+          expect(err).toBe('Input stream closed.');
+        })
+        .then(done, done);
+
+      stdin.close();
+    });
   });
 
 
 });
-
 

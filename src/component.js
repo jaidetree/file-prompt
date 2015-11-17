@@ -42,6 +42,12 @@ class Component extends EventEmitter {
   state = {};
   props = {};
   _listeners = [];
+  _hasRendered = false;
+  _content = null;
+
+  static render (component) {
+    process.stdout.write(component._content);
+  }
 
   /**
    * Constructor
@@ -60,7 +66,6 @@ class Component extends EventEmitter {
     }
 
     this.state = this.getInitialState();
-
     this.componentWillMount();
     this.renderComponent();
     this.componentDidMount();
@@ -290,10 +295,10 @@ class Component extends EventEmitter {
    * Renders the output of the render method to console
    *
    * @method
-   * @private
+   * @public
    */
   renderComponent () {
-    process.stdout.write(`${this.render().toString()} \n`);
+    this._content = `${this.render()}\n`;
   }
 
   /**

@@ -107,7 +107,7 @@
     "no-new": 1, // ..................................... Disallow use of the new operator when not part of an assignment or comparison
     "no-octal-escape": 1, // ............................ Disallow use of octal escape sequences in string literals, such as var foo = "Copyright \251";
     "no-octal": 1, // ................................... Disallow use of octal literals (recommended)
-    "no-param-reassign": 2, // .......................... Disallow reassignment of function parameters
+    "no-param-reassign": 1, // .......................... Disallow reassignment of function parameters
     "no-process-env": 1, // ............................. Disallow use of process.env
     "no-proto": 1, // ................................... Disallow usage of __proto__ property
     "no-redeclare": 2, // ............................... Disallow declaring the same variable more than once (recommended)
@@ -148,6 +148,7 @@
     // -----------------------------------------------------------------------
     // NODE.JS & COMMON JS
     // -----------------------------------------------------------------------
+
     "no-mixed-requires": 0, // .......................... Disallow mixing regular variable and require declarations
     "no-new-require": 1, // ............................. Disallow use of new operator with the require function
     "no-path-concat": 1, // ............................. Disallow string concatenation with __dirname and __filename
@@ -155,6 +156,7 @@
     // -----------------------------------------------------------------------
     // STYLISTIC ISSUES
     // -----------------------------------------------------------------------
+
     "array-bracket-spacing": [1, "never"], // ........... Enforce spacing inside array brackets (fixable)
     "block-spacing": 1, // .............................. Disallow or enforce spaces inside of single line blocks (fixable)
     "brace-style": [1, "stroustrup", { // ............... Enforce one true brace style
@@ -241,8 +243,8 @@
     // ES6
     // -----------------------------------------------------------------------
 
-    "arrow-body-style": [1, "always"], // ........................... Require braces in arrow function body
-    "arrow-parens": [1, "always"], // ................ Require parens in arrow function arguments
+    "arrow-body-style": 0, // ........................... Require braces in arrow function body
+    "arrow-parens": [1, "always"], // ................... Require parens in arrow function arguments
     "arrow-spacing": 1, // .............................. Require space before/after arrow function's arrow (fixable)
     "constructor-super": 1, // .......................... Verify calls of super() in constructors
     "generator-star-spacing": [1, "before"], // ......... Enforce spacing around the * in generator functions (fixable)

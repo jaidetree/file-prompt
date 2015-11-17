@@ -1,0 +1,14 @@
+{
+  "name": "file-prompt-tests",
+  "version": "1.0.0",
+  "description": "The tests package for our CLI utility",
+  "main": "index.js",
+  "scripts": {
+    "test": "gulp test"
+  },
+  "author": "Jay Zawrotny <jayzawrotny@gmail.com>",
+  "license": "BSD-3-Clause",
+  "devDependencies": {
+    "expect": "^1.13.0"
+  }
+}

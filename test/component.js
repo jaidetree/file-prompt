@@ -1,7 +1,7 @@
 import expect from 'expect';
 import EventEmitter from 'events';
-import Component from 'src/component';
-import StdoutInterceptor from 'tests/lib/stdout_interceptor';
+import Component from '../src/component';
+import StdoutInterceptor from './lib/stdout_interceptor';
 
 const DEFINED_METHODS = [
   'constructor',
@@ -99,6 +99,7 @@ describe('Component', () => {
   afterEach(() => {
     comlink.removeAllListeners();
     expect.restoreSpies();
+    ceptor.flush();
   });
 
   describe('#constructor', () => {
@@ -110,7 +111,7 @@ describe('Component', () => {
 
     it('Should throw an error on direct initialization', () => {
       expect(() => {
-        return new Component();
+        return new Component().render();
       }).toThrow(Error, 'Component must implement a render method.');
     });
 
@@ -610,13 +611,23 @@ describe('Component', () => {
   describe('#renderComponent()', () => {
     it('Should write to console', () => {
       let component = new TestComponent(),
-          output;
+          output = "";
 
       ceptor.capture();
-      component.renderComponent();
+      Component.render(component);
       output = ceptor.release();
 
       expect(output).toBe('Hello world');
+    });
+
+    it('Should write new content after state update', () => {
+      let component = new TestComponent();
+
+      component.setState({
+        name: 'Jerry'
+      });
+
+      expect(component._content).toBe('Hello world\n');
     });
   });
 

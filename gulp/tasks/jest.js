@@ -18,7 +18,7 @@ let paths = project.paths,
     args = minimist(process.argv.slice(2));
 
 paths.jest = {
-  dir: project.to('tests'),
+  dir: project.to('test'),
   files: '**/*.js',
 
   // Jest API config
@@ -82,7 +82,8 @@ function test () {
 
   // Found this in the jest-cli source :P
   try {
-    jest.runCLI(config, project.paths.gulp, (...args) => {
+    jest.runCLI(config, project.paths.gulp, (success) => {
+      console.log(success);
     });
   }
   catch (e) {

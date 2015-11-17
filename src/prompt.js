@@ -53,6 +53,11 @@ class Prompt {
     return new Promise((resolve, reject) => {
       // Try asking a question with the readline interface
       try {
+        this.options.stdin.on('end', () => {
+          this.close();
+          reject('Input stream closed.');
+        });
+
         // Set the prompt character to be cool
         rl.setPrompt(this.formatPrompt());
 
@@ -90,7 +95,7 @@ class Prompt {
     if (!this.rl) return;
     process.removeListener('exit', this.close);
     this.rl.close();
-    this.options.stdin.destroy();
+    this.options.stdin.close();
   }
 
   /**

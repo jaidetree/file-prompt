@@ -32,8 +32,6 @@ export default class StdoutInterceptor {
    * @public
    */
   capture () {
-    this.output = [];
-
     process.stdout._write = (chunk, enc, callback) => {
       this.output.push(chunk);
       callback();

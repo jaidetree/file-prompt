@@ -17,7 +17,7 @@ import project from '../config/project';
 let paths = {};
 
 paths = {};
-paths.src = project.to('tests', '*.js');
+paths.src = project.to('test', '*.js');
 paths.watch = [
   project.paths.js.src,
   paths.src
@@ -28,19 +28,6 @@ paths.watch = [
  * @returns {stream} Resulting transform stream
  */
 function test () {
-  /**
-   * @todo Find a better way to inject these modules into tests. This works
-   * but if that _initPaths method ever changes this would break something
-   * fierce so it's not the best solution.
-   */
-  let requirePaths = [
-    project.join(project.paths.gulp, 'node_modules'),
-    project.paths.root
-  ];
-
-  process.env.NODE_PATH += `:${requirePaths.join(':')}`;
-  require('module').Module._initPaths();
-
   return gulp.src(paths.src, { read: false })
     .pipe(plumber())
     .pipe(mocha({}));
