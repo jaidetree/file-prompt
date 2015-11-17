@@ -7,6 +7,7 @@
  * gulp clean
 */
 import gulp from 'gulp';
+import log from 'gutil-waterlog';
 import mocha from 'gulp-mocha';
 import plumber from 'gulp-plumber';
 import watch from 'gulp-watch';
@@ -42,8 +43,7 @@ function test () {
 
   return gulp.src(paths.src, { read: false })
     .pipe(plumber())
-    .pipe(mocha({
-    }));
+    .pipe(mocha({}));
 }
 
 gulp.task('test:mocha', () => {
@@ -57,7 +57,13 @@ gulp.task('test', ['test:mocha']);
  * Runs a watcher on all src js files and tests them when changed.
  */
 gulp.task('watch:test', () => {
-  return watch(paths.watch, () => {
+  return watch(paths.watch, (file) => {
+    require.cache = {};
+    log.task('Cleared')
+      .data(file.relative)
+      .text('From cache')
+      .send();
+
     return test();
   });
 });
