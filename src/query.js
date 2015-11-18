@@ -1,4 +1,22 @@
 /**
+ * Map To Object
+ * Creates an object out of a keys and values array pair
+ *
+ * @param {array} keys - Array of key values to use as properties
+ * @param {array} values - Array of values to assign to the properties
+ * @returns {object} A newly mapped object
+ */
+function mapToObject (keys, values) {
+  let data = {};
+
+  keys.forEach((key, i) => {
+    data[key] = values[i];
+  });
+
+  return data;
+}
+
+/**
  * Query
  * @class
  * @classdesc It represents search input for a menu option and has a static
@@ -6,6 +24,8 @@
  *            subqueries and turn that into an array of queries.
  */
 export default class Query {
+  query = null;
+  data = {};
 
   /**
    * Create From
@@ -42,12 +62,25 @@ export default class Query {
    * @method
    * @public
    * @param {string} str - Original input string
-   * @returns {array} Found numbers
+   * @returns {array|object} Found numbers
    */
   static extractNumbers (str) {
     return str.match(/[\d]+/g).map((numStr) => {
       return Number(numStr);
     });
+  }
+
+  /**
+   * Is Valid
+   * Determines if a str is empty or not
+   *
+   * @method
+   * @public
+   * @param {string} str - Str to check validity of
+   * @returns {boolean} True if query is a valid string
+   */
+  static isValid (str) {
+    return typeof str === 'string' && !!str.trim();
   }
 
   /**
@@ -60,7 +93,14 @@ export default class Query {
    * @param {string} query - The raw query string to parse & test with
    */
   constructor (query) {
-    this.query = String(query).toLowerCase();
+    this.rawQueryString = query;
+
+    if (Query.isValid(query)) {
+      this.query = String(query)
+        .trim()
+        .toLowerCase();
+      this.data = this.parse();
+    }
   }
 
   /**
@@ -90,7 +130,7 @@ export default class Query {
 
   /**
    * Is Integer
-   * Determiens if query is a insteger or not
+   * Determiens if query is a integer or not
    *
    * @method
    * @public
@@ -98,6 +138,17 @@ export default class Query {
    */
   isInteger () {
     return Number.isInteger(Number(this.query));
+  }
+
+  /**
+   * Is Start Of
+   * Determines if option name startsWith the query
+   *
+   * @param {string} str - String to test against
+   * @returns {boolean} If query starts with the str
+   */
+  isStartOf (str) {
+    return str.toLowerCase().startsWith(this.query);
   }
 
   /**
@@ -110,6 +161,18 @@ export default class Query {
    */
   isRange () {
     return (/[\d]+[\s]*-[\s]*[\d]/g).test(this.query);
+  }
+
+  /**
+   * Is Valid
+   * Determines if a str is empty or not
+   *
+   * @method
+   * @public
+   * @returns {boolean} True if query is a valid string
+   */
+  isValid () {
+    return Query.isValid(this.query);
   }
 
   /**
@@ -133,36 +196,37 @@ export default class Query {
       query = this.query.slice(1);
     }
 
+    // It's a range of integers so you know... do that.
     if (this.isRange()) {
       data.type = 'range';
-      data.value = Query.extractNumbers(query);
+      data.value = mapToObject(['min', 'max'], Query.extractNumbers(query));
     }
-
+    // It's an integer so lets check for menu option ids
     else if (this.isInteger()) {
       data.type = 'id';
       data.value = Number(query);
     }
-
     // Guess you're a string then huh?
     else {
       data.type = 'string';
       data.value = query;
     }
 
-    data.query = this.query;
+    data.query = this.rawQueryString;
 
     return data;
   }
 
   /**
-   * Starts With
-   * Determines if option name startsWith the query
+   * Raw Query
+   * Returns a copy of the raw query string
    *
-   * @param {string} str - String to test against
-   * @returns {boolean} If query starts with the str
+   * @method
+   * @public
+   * @returns {string} Raw query string
    */
-  startsWith (str) {
-    return this.query.startsWith(str.toLowerCase());
+  rawQuery () {
+    return String(this.rawQueryString);
   }
 
   /**

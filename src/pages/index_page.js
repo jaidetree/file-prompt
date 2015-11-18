@@ -94,8 +94,7 @@ class IndexPage extends Page {
    * @param {object} intro [description]
    */
   processInput (answer) {
-    this.props.menu.each((option) => {
-    });
+    return this.menu.find(answer, (queries) => queries[0]);
   }
 
   renderIntro () {
@@ -105,7 +104,13 @@ class IndexPage extends Page {
   renderPrompt () {
     return () => {
       this.props.prompt.beckon(this.question)
-        .then(this.processInput);
+        .then(this.processInput)
+        .then((selections) => {
+          return this.menu.select(selections);
+        })
+        .then((selectedItem) => {
+          console.log(selectedItem);
+        });
     };
   }
 

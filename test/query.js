@@ -116,6 +116,50 @@ describe('Query', () => {
     });
   });
 
+  describe('#isStartOf()', () => {
+    it('Should return true when the query starts with given string', () => {
+      let query = new Query('red fish');
+
+      expect(query.isStartOf('red fish vanish')).toBe(true);
+    });
+
+    it('Should return false when the query does not start with given string', () => {
+      let query = new Query('red fish');
+
+      expect(query.isStartOf('blue fish never vanish')).toBe(false);
+    });
+  });
+
+  describe('#isValid()', () => {
+    it('Should be a valid query string if non-empty or falsey value', () => {
+      let query = new Query('22skidoo');
+
+      expect(query.isValid()).toBe(true);
+    });
+
+    it('Should return false if query is falsey', () => {
+      let query = new Query('');
+
+      expect(query.isValid()).toBe(false);
+    });
+
+    it('Should return false if query is null', () => {
+      let query = new Query(null);
+
+      expect(query.rawQueryString).toBe(null);
+      expect(query.query).toBe(null);
+      expect(query.isValid()).toBe(false);
+    });
+
+    it('Should return false if query is undefined', () => {
+      let query = new Query();
+
+      expect(query.rawQueryString).toBeA('undefined');
+      expect(query.query).toBe(null);
+      expect(query.isValid()).toBe(false);
+    });
+  });
+
   describe('#parse()', () => {
     it('Should return an object', () => {
       let data = new Query('red').parse();
@@ -139,9 +183,9 @@ describe('Query', () => {
 
       expect(data.type).toBe('range');
       expect(data.query).toBe('5-94');
-      expect(data.value).toBeA('array');
-      expect(data.value[0]).toBe(5);
-      expect(data.value[1]).toBe(94);
+      expect(data.value).toBeA('object');
+      expect(data.value.min).toBe(5);
+      expect(data.value.max).toBe(94);
     });
 
     it('Should parse subtractions for ids', () => {
@@ -159,23 +203,9 @@ describe('Query', () => {
       expect(data.type).toBe('range');
       expect(data.action).toBe('subtract');
       expect(data.query).toBe('-5-94');
-      expect(data.value).toBeA('array');
-      expect(data.value[0]).toBe(5);
-      expect(data.value[1]).toBe(94);
-    });
-  });
-
-  describe('#startsWith()', () => {
-    it('Should return true when the query starts with given string', () => {
-      let query = new Query('red fish vanish');
-
-      expect(query.startsWith('red fish')).toBe(true);
-    });
-
-    it('Should return false when the query does not start with given string', () => {
-      let query = new Query('red fish vanish');
-
-      expect(query.startsWith('hungry mofo')).toBe(false);
+      expect(data.value).toBeA('object');
+      expect(data.value.min).toBe(5);
+      expect(data.value.max).toBe(94);
     });
   });
 
