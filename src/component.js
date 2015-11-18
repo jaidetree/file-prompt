@@ -28,6 +28,39 @@ function createListener (obj, event, callback, context) {
 }
 
 /**
+ * Write
+ * A single function responsible for outputting to the screen. Just in case
+ * I end up switching between console.log or some other means there is
+ * only one place that needs to be changed.
+ *
+ * @param {string} content - Content to display
+ */
+function write (content) {
+  process.stdout.write(content);
+}
+
+/**
+ * Write Array
+ * Iterates through the array to figure out what to display to the screen.
+ *
+ * @param {array} content - Array of content to iterate through
+ */
+function writeArray (content) {
+  for (let element of content) {
+    switch (typeof element) {
+    case 'string':
+      write(element);
+      break;
+
+    case 'function':
+      // write('\n');
+      element();
+      break;
+    }
+  }
+}
+
+/**
  * Component
  * Base component class has react like functionality to make building
  * the CLI ui more quickly.
@@ -45,8 +78,22 @@ class Component extends EventEmitter {
   _hasRendered = false;
   _content = null;
 
-  static render (component) {
-    process.stdout.write(component._content);
+  static display (component) {
+    let content = component._content;
+
+    if (Array.isArray(content)) {
+      writeArray(content);
+    }
+    else {
+      write(content);
+    }
+  }
+
+  static mount (component) {
+    component.componentWillMount();
+    component.renderComponent();
+    Component.display(component);
+    component.componentDidMount();
   }
 
   /**
@@ -66,9 +113,6 @@ class Component extends EventEmitter {
     }
 
     this.state = this.getInitialState();
-    this.componentWillMount();
-    this.renderComponent();
-    this.componentDidMount();
   }
 
   /**
@@ -298,7 +342,13 @@ class Component extends EventEmitter {
    * @public
    */
   renderComponent () {
-    this._content = `${this.render()}\n`;
+    let content = this.render();
+
+    if (!Array.isArray(content)) {
+      content += '\n';
+    }
+
+    this._content = content;
   }
 
   /**

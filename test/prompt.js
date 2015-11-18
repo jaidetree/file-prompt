@@ -116,7 +116,7 @@ describe('Prompt', () => {
         })
         .then(done, done);
 
-      stdin.close();
+      stdin.end();
     });
   });
 

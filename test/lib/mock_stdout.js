@@ -2,6 +2,7 @@ import { Writable } from 'stream';
 
 class MockStdout extends Writable {
   output = "";
+  isTTY = true;
 
   constructor (...args) {
     super(...args);

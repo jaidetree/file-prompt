@@ -96,9 +96,7 @@
     "no-labels": 1, // .................................. Disallow use of labeled statements
     "no-lone-blocks": 2, // ............................. Disallow unnecessary nested blocks
     "no-loop-func": 1, // ............................... Disallow creation of functions within loops
-    "no-magic-numbers": [1, { // ........................ Disallow the use of magic numbers
-      "ignore": [-1, 0, 1, 2]
-    }],
+    "no-magic-numbers": 0, // ........................... Disallow the use of magic numbers
     "no-multi-spaces": 1, // ............................ Disallow use of multiple spaces (fixable)
     "no-multi-str": 1, // ............................... Disallow use of multiline strings
     "no-native-reassign": 1, // ......................... Disallow reassignments of native objects

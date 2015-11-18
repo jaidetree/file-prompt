@@ -107,14 +107,14 @@ class Page extends Component {
     }
 
     if (this.renderMenu) {
-      content.push(this.renderOptiosn());
+      content.push(this.renderMenu());
     }
 
     if (this.renderPrompt) {
       content.push(this.renderPrompt());
     }
 
-    return content.join('');
+    return content;
   }
 
 }

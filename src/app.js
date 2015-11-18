@@ -1,5 +1,6 @@
 import Component from './component';
 import EventEmitter from 'events';
+import IndexPage from './pages/index_page';
 
 /**
  * App
@@ -16,7 +17,7 @@ class App extends Component {
    * @public
    */
   static PAGES = {
-
+    index: IndexPage
   };
 
   /**
@@ -33,13 +34,20 @@ class App extends Component {
   getDefaultProps () {
     return {
       comlink: new EventEmitter(),
-      initialPage: null
+      initialPage: 'index'
     };
   }
 
   getInitialState () {
+    let initialPage = this.props.initialPage,
+        page = null;
+
+    if (initialPage) {
+      page = this.getPage(initialPage);
+    }
+
     return {
-      page: null,
+      page,
       files: []
     };
   }
@@ -53,6 +61,25 @@ class App extends Component {
   }
 
   /**
+   * Get Page
+   * Returns the requested page instance
+   *
+   * @method
+   * @public
+   * @param {string} pageName - Name of the page to get
+   * @returns {Page} Returns a page subclass instance
+   */
+  getPage (pageName) {
+    if (!App.PAGES.hasOwnProperty(pageName)) {
+      throw new Error(`App: Page does not exist “${pageName}”.`);
+    }
+
+    return new App.PAGES[pageName]({
+      comlink: this.props.comlink
+    });
+  }
+
+  /**
    * Navigate
    * Sets the page state to the requested page name
    *
@@ -61,15 +88,11 @@ class App extends Component {
    * @param {string} pageName - Name of the page to navigate to
    */
   navigate (pageName) {
-    if (!App.PAGES.hasOwnProperty(pageName)) {
-      throw new Error(`App: Page does not exist “${pageName}”.`);
-    }
-
     this.setState({
-      page: new App.PAGES[pageName]({
-        comlink: this.props.comlink
-      })
+      page: this.getPage(pageName)
     });
+
+    Component.display(this);
   }
 
   /**
@@ -84,18 +107,6 @@ class App extends Component {
     if (!this.state.page) return '';
 
     return this.state.page.render();
-  }
-
-  /**
-   * Render Component
-   * Directly renders the output of the page to console
-   *
-   * @method
-   * @public
-   */
-  renderComponent () {
-    super.renderComponent();
-    Component.render(this);
   }
 }
 

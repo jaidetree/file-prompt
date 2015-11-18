@@ -9,12 +9,10 @@ const DEFINED_METHODS = [
   'getInitialState',
   'componentWillMount',
   'componentWillUnmount',
+  'getPage',
   'navigate',
-  'render',
-  'renderComponent'
+  'render'
 ];
-
-let ceptor = new StdoutInterceptor();
 
 class TestComponent extends Component {
   render () {
@@ -22,14 +20,10 @@ class TestComponent extends Component {
   }
 }
 
-App.PAGES = {
-  test: TestComponent
-};
+App.PAGES.test = TestComponent;
 
 describe('App', () => {
   afterEach(() => {
-    ceptor.flush();
-    ceptor.release();
     expect.restoreSpies();
   });
 
@@ -57,6 +51,19 @@ describe('App', () => {
       expect(Reflect.ownKeys(App.prototype)).toEqual(DEFINED_METHODS);
     });
 
+    it('Should render the index page by default', () => {
+      let app = new App({
+            initialPage: 'index'
+          }),
+          ceptor = new StdoutInterceptor();
+
+      ceptor.capture();
+      Component.mount(app);
+      ceptor.release();
+
+      expect(ceptor.toString()).toBe('\x1b[37m\x1b[1m*** COMMANDS ***\x1b[22m\x1b[39m1 \x1b[34m\x1b[1mD\x1b[22m\x1b[39mirectories\t\n,2 \x1b[34m\x1b[1mF\x1b[22m\x1b[39miles\t\n,3 \x1b[34m\x1b[1mG\x1b[22m\x1b[39mlob string\t\n,4 \x1b[34m\x1b[1mC\x1b[22m\x1b[39mhanged from git\t\n[object Promise]\n');
+    });
+
   });
 
   describe('#navigate()', () => {
@@ -79,10 +86,12 @@ describe('App', () => {
     it('Should render the selected page', () => {
       let spy = expect.spyOn(App.prototype, 'render').andCallThrough(),
           app = new App(),
+          ceptor = new StdoutInterceptor(),
           output;
 
-      ceptor.flush();
       ceptor.capture();
+      Component.mount(app);
+      ceptor.flush();
       app.navigate('test');
       ceptor.release();
       output = ceptor.toString();

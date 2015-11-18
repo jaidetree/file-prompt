@@ -1,6 +1,6 @@
 /* eslint no-magic-numbers: 0  */
 import readline from 'readline';
-import { colors } from 'gulp-util';
+import colors from 'chalk';
 
 /**
  * Prompt
@@ -15,7 +15,10 @@ class Prompt {
    * Class properties
    */
   text = "";
-  options = {};
+  options = {
+    stdin: process.stdin,
+    stdout: process.stdout
+  };
 
   /**
    * Constructor
@@ -26,7 +29,9 @@ class Prompt {
    * @param {object} options - Options to initialize the prompt with.
    */
   constructor (text, options={}) {
-    this.text = text;
+    if (text) {
+      this.text = text;
+    }
 
     if (options) {
       this.options = Object.assign(this.options, options);
@@ -40,40 +45,46 @@ class Prompt {
    *
    * @method
    * @public
+   * @param {string} question - The question to beckon
    * @returns {Promise} - Returns an ES6 promise object
    */
-  beckon () {
+  beckon (question) {
     // Create the readline interface
     let rl = this.rl = readline.createInterface({
-      input: this.options.stdin || process.stdin,
-      output: this.options.stdout || process.stdout
+      input: this.options.stdin,
+      output: this.options.stdout
     });
+
+    if (question) {
+      this.text = question;
+    }
 
     // Create our promise
     return new Promise((resolve, reject) => {
       // Try asking a question with the readline interface
       try {
-        this.options.stdin.on('end', () => {
+        this.options.stdin.once('end', () => {
           this.close();
           reject('Input stream closed.');
         });
 
         // Set the prompt character to be cool
-        rl.setPrompt(this.formatPrompt());
+        rl.setPrompt(this.formatText() + this.formatPrompt());
 
-        // Just ask the question ok node?
-        rl.question(this.formatText(), (answer) => {
-          this.close();
-
-          // Cool we got an answer so lets send it back
-          resolve(answer);
+        rl.on('line', (line) => {
+          resolve(line.trim());
         });
+
+        this.options.stdout.write('\n');
 
         // Setup some close handlers just in case
         rl.once('close', this.close);
 
         // Make sure that when the process exits we clean up after ourselves
         process.once('exit', this.close);
+
+        // Beckon that prompt!
+        rl.prompt();
       }
       catch (e) {
         // Close the interface
@@ -94,8 +105,8 @@ class Prompt {
   close () {
     if (!this.rl) return;
     process.removeListener('exit', this.close);
-    this.rl.close();
-    this.options.stdin.close();
+    // this.rl.close();
+    // this.options.stdin.end();
   }
 
   /**

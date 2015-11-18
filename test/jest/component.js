@@ -1,7 +1,14 @@
-import expect from 'expect';
+/**
+ * Component Class Unit Test
+ */
+jest.autoMockOff();
+
+console.log(process.cwd());
+
 import EventEmitter from 'events';
-import Component from '../src/component';
-import StdoutInterceptor from './lib/stdout_interceptor';
+import Component from '../../src/component';
+import StdoutInterceptor from '../lib/stdout_interceptor';
+import expect from '../../gulp/node_modules/expect';
 
 const DEFINED_METHODS = [
   'constructor',
@@ -27,7 +34,8 @@ const DEFINED_METHODS = [
   'stopListening'
 ];
 
-let TESTFLAGS = {
+let ceptor = new StdoutInterceptor(),
+    TESTFLAGS = {
       captureFromRender: true,
       delayRender: false
     },
@@ -38,16 +46,66 @@ let TESTFLAGS = {
  * to be instantiated directly
  */
 class TestComponent extends Component {
+  componentDidMount () {
+    super.componentWillMount();
+    comlink.emit('componentDidMount');
+  }
+
+  componentDidUpdate (...args) {
+    super.componentWillUpdate(...args);
+    comlink.emit('componentDidUpdate', Date.now(), ...args);
+  }
+
+  componentShouldUpdate (...args) {
+    let output = super.componentShouldUpdate(...args);
+
+    comlink.emit('componentShouldUpdate', output, ...args);
+    return output;
+  }
+
+  componentWillMount () {
+    super.componentWillMount();
+    comlink.emit('componentWillMount');
+  }
+
+  componentWillUnmount () {
+    super.componentWillUnmount();
+    comlink.emit('componentWillUnmount');
+  }
+
+  componentWillUpdate (...args) {
+    super.componentWillUpdate(...args);
+    comlink.emit('componentWillUpdate', Date.now(), ...args);
+  }
+
   render () {
+    if (TESTFLAGS.delayRender) {
+      // Simulate a slightly slower rendering process
+      for (let i = 0; i < 1000000; i++) {
+        // Do nothing
+      }
+    }
     return 'Hello world';
+  }
+
+  renderComponent () {
+    /** If we want to capture output separately */
+    if (!TESTFLAGS.captureFromRender) {
+      return super.renderComponent();
+    }
+
+    ceptor.capture();
+    super.renderComponent();
+    comlink.emit('render');
+    return ceptor.release();
   }
 }
 
 describe('Component', () => {
   /** After each test remove all listeners on the comlink */
   afterEach(() => {
-    expect.restoreSpies();
     comlink.removeAllListeners();
+    expect.restoreSpies();
   });
 
   describe('#constructor', () => {
@@ -59,7 +117,7 @@ describe('Component', () => {
 
     it('Should throw an error on direct initialization', () => {
       expect(() => {
-        return new Component().render();
+        return new Component();
       }).toThrow(Error, 'Component must implement a render method.');
     });
 
@@ -96,7 +154,7 @@ describe('Component', () => {
     });
   });
 
-  describe('#getInitialState()', () => {
+  describe('#getInitialState', () => {
     it('Should return an object', () => {
       let component = new TestComponent();
 
@@ -104,71 +162,68 @@ describe('Component', () => {
     });
   });
 
-  describe('#componentWillMount()', () => {
-    it('Should fire once after being mounted', () => {
-      let component = new TestComponent(),
-          spy = expect.spyOn(component, 'componentWillMount'),
-          ceptor = new StdoutInterceptor();
+  describe('componentWillMount', () => {
+    it('Should fire once from the constructor', (done) => {
+      let callCount = 0, component;
 
-      ceptor.capture();
-      Component.mount(component);
-      ceptor.release();
+      comlink.on('componentWillMount', () => {
+        callCount += 1;
+        expect(callCount).toBe(1);
+      });
 
-
+      component = new TestComponent();
       component.forceUpdate();
-      expect(spy).toHaveBeenCalled('Spy was not called');
-      expect(spy.calls.length).toBe(1);
+
+      done();
     });
 
     it('Should not run on subsequent renders', (done) => {
-      let component = new TestComponent(),
-          spy = expect.spyOn(component, 'componentWillMount'),
-          ceptor = new StdoutInterceptor();
+      let callCount = 0, component;
 
-      ceptor.capture();
-      Component.mount(component);
-      ceptor.release();
+      comlink.on('componentWillMount', () => {
+        callCount += 1;
+      });
 
-      ceptor.capture();
+      component = new TestComponent();
+
       component.setState({
         name: 'Jerry'
       }, () => {
-        expect(spy.calls.length).toBe(1);
+        expect(callCount).toBe(1);
         done();
       });
-      ceptor.release();
     });
   });
 
-  describe('componentDidMount()', () => {
-    it('Should fire once from the constructor', () => {
-      let component = new TestComponent(),
-          spy = expect.spyOn(component, 'componentDidMount'),
-          ceptor = new StdoutInterceptor();
+  describe('componentDidMount', () => {
+    it('Should fire once from the constructor', (done) => {
+      let callCount = 0, component;
 
-      ceptor.capture();
-      Component.mount(component);
-      ceptor.release();
+      comlink.on('componentDidMount', () => {
+        callCount += 1;
+        expect(callCount).toBe(1);
+      });
 
-      expect(spy).toHaveBeenCalled();
+      component = new TestComponent();
       component.forceUpdate();
-      expect(spy.calls.length).toBe(1);
+
+      done();
     });
 
-    it('Should not run on subsequent renders', () => {
-      let component = new TestComponent(),
-          spy = expect.spyOn(component, 'componentDidMount'),
-          ceptor = new StdoutInterceptor();
+    it('Should not run on subsequent renders', (done) => {
+      let callCount = 0, component;
 
-      ceptor.capture();
-      Component.mount(component);
-      ceptor.release();
+      comlink.on('componentDidMount', () => {
+        callCount += 1;
+      });
+
+      component = new TestComponent();
 
       component.setState({
         name: 'Jerry'
       }, () => {
-        expect(spy).toHaveBeenCalled();
-        expect(spy.calls.length).toBe(1);
+        expect(callCount).toBe(1);
+        done();
       });
     });
   });
@@ -178,12 +233,6 @@ describe('Component', () => {
       let component = new TestComponent();
 
       expect(component.componentShouldUpdate()).toBe(true);
-    });
-
-    it('Should return true if given new state data', () => {
-      let component = new TestComponent();
-
-      expect(component.componentShouldUpdate({}, { name: 'Jerry' })).toBe(true);
     });
 
     it('Should return false with current props & state', () => {
@@ -201,88 +250,99 @@ describe('Component', () => {
       expect(component.componentShouldUpdate(props, { name: 'Jerry' })).toBe(true);
     });
 
-    it('Should be triggered from setState', () => {
-      let component = new TestComponent(),
-          spy = expect.spyOn(component, 'componentShouldUpdate')
-                .andCallThrough();
-
-      component.setState({
-        name: 'Jerry'
-      });
-
-      expect(spy).toHaveBeenCalled();
-      expect(spy).toHaveBeenCalledWith({}, { name: 'Jerry' });
-      expect(component.state.name).toBe('Jerry');
-    });
-  });
-
-  describe('componentWillUpdate', () => {
-    it('Should return undefined', () => {
+    it('Should be triggered from setState', (done) => {
       let component = new TestComponent();
 
-      expect(typeof component.componentWillUpdate()).toBe('undefined');
-    });
-
-    it('Should fire from setState', () => {
-      let component = new TestComponent(),
-          spy = expect.spyOn(component, 'componentWillUpdate')
-                .andCallThrough();
+      /** Setup a listener */
+      comlink.once('componentShouldUpdate', (shouldUpdate, nextProps, nextState) => {
+        expect(shouldUpdate).toBe(true);
+        expect(typeof component.state.name).toBe('undefined');
+        expect(nextState.name).toBe('Jerry');
+        done();
+      });
 
       /** Finally trigger the function */
       component.setState({
         name: 'Jerry'
       });
+    });
+  });
 
-      expect(spy).toHaveBeenCalled();
-      expect(spy).toHaveBeenCalledWith({}, { name: 'Jerry' });
-      expect(component.state.name).toBe('Jerry');
+  describe('componentWillUpdate', () => {
+    it('should return undefined', () => {
+      let component = new TestComponent();
+
+      expect(typeof component.componentWillUpdate()).toBe('undefined');
     });
 
-    it('Should not fire when setState with same value', (done) => {
+    it('should fire from setState', (done) => {
+      let component = new TestComponent();
+
+      comlink.once('componentWillUpdate', (time, nextProps, nextState) => {
+        expect(nextState.name).toBe('Jerry');
+        expect(component.state.name).toNotBe('Jerry');
+        done();
+      });
+
+      /** Finally trigger the function */
+      component.setState({
+        name: 'Jerry'
+      });
+    });
+
+    it('should not fire when setState with same value', (done) => {
       let component = new TestComponent(),
-          spy = expect.spyOn(component, 'componentWillUpdate')
-                .andCallThrough();
+          callCount = 0;
 
       /** Setup a default */
       component.setState({
         name: 'Jerry'
       });
 
+      comlink.once('componentWillUpdate', (time, nextProps, nextState) => {
+        callCount += 1;
+        expect(this.state.name).toBe('Jerry');
+        expect(nextState.name).toBe('Jerry');
+      });
+
       /** Finally trigger the function */
       component.setState({
         name: 'Jerry'
       }, () => {
-        expect(spy).toHaveBeenCalled();
-        expect(spy.calls.length).toBe(1);
+        expect(callCount).toBe(0);
         expect(component.state.name).toBe('Jerry');
-        expect(spy).toHaveBeenCalledWith({}, { name: 'Jerry' });
         done();
       });
     });
   });
 
   describe('componentDidUpdate', () => {
-    it('Should return undefined', () => {
+    after(() => {
+      TESTFLAGS.delayRender = false;
+    });
+
+    it('should return undefined', () => {
       let component = new TestComponent();
 
       expect(typeof component.componentDidUpdate()).toBe('undefined');
     });
 
-    it('Should fire from setState', () => {
-      let component = new TestComponent(),
-          spy = expect.spyOn(component, 'componentDidUpdate');
+    it('should fire from setState', (done) => {
+      let component = new TestComponent();
+
+      comlink.once('componentDidUpdate', (time, prevProps, prevState) => {
+        expect(typeof prevState.name).toBe('undefined');
+        expect(component.state.name).toBe('Jerry');
+        done();
+      });
 
       /** Finally trigger the function */
       component.setState({
         name: 'Jerry'
       });
-
-      expect(component.state.name).toBe('Jerry');
-      expect(spy).toHaveBeenCalled();
-      expect(spy).toHaveBeenCalledWith({}, {});
     });
 
-    it('Should not fire when setState with same value', (done) => {
+    it('should not fire when setState with same value', (done) => {
       let component = new TestComponent(),
           callCount = 0;
 
@@ -307,76 +367,94 @@ describe('Component', () => {
       });
     });
 
-    it('Should occur after componentWillUpdate', (done) => {
+    it('should occur after componentWillUpdate', (done) => {
       let component = new TestComponent(),
-          spy = expect.spyOn(component, 'componentDidUpdate'),
           componentUpdatedAt;
 
-      expect.spyOn(component, 'componentWillUpdate')
-        .andCall(() => {
-          let count = 0;
-          componentUpdatedAt = Date.now();
-          for (let i = 0; i < 1000000; i++) {
-            // Delay the distance between methods
-            count = i;
-          }
-        });
+      comlink.once('componentWillUpdate', (time) => {
+        componentUpdatedAt = time;
+      });
+
+      comlink.once('componentDidUpdate', (time) => {
+        expect(componentUpdatedAt).toNotBe(Date.now());
+        expect(componentUpdatedAt).toNotBe(time);
+        expect(time > componentUpdatedAt).toBe(true);
+        done();
+      });
+
+      /** Make rendering take a little longer */
+      TESTFLAGS.delayRender = true;
 
       /** Finally trigger the function */
       component.setState({
         name: 'Jerry'
       }, () => {
-        let time = Date.now();
-
-        expect(spy).toHaveBeenCalled();
-        expect(componentUpdatedAt).toNotBe(time);
-        expect(time > componentUpdatedAt).toBe(true);
-
-        done();
+        TESTFLAGS.delayRender = false;
       });
     });
   });
 
   describe('#componentWillUnmount', () => {
-    it('Should fire when component is removed', () => {
+    it('Should fire when component is removed', (done) => {
       let component = new TestComponent(),
-          spy = expect.spyOn(component, 'componentWillUnmount');
+          callCount = 0;
 
+      comlink.on('componentWillUnmount', () => {
+        callCount += 1;
+        expect(callCount).toBe(1);
+        done();
+      });
+
+      /** Finally remove the component */
       component.remove();
-
-      expect(spy).toHaveBeenCalled();
     });
   });
 
   describe('#forceUpdate()', () => {
-    it('Should trigger a render', () => {
+    it('Trigger a render', () => {
       let component = new TestComponent(),
-          spy = expect.spyOn(component, 'render');
+          callCount = 0;
+
+      comlink.on('render', () => {
+        callCount += 1;
+      });
 
       component.forceUpdate();
 
-      expect(spy).toHaveBeenCalled();
-      expect(spy.calls.length).toBe(1);
+      expect(callCount).toBe(1);
     });
 
-    it('Should cause both componentWillUpdate and componentDidUpdate to fire', () => {
+    it('Should case both componentWillUpdate and componentDidUpdate to fire', () => {
       let component = new TestComponent(),
-          willSpy = expect.spyOn(component, 'componentWillUpdate'),
-          didSpy = expect.spyOn(component, 'componentDidUpdate');
+          wasWillUpdateCalled = false,
+          wasDidUpdateCalled = false;
+
+      comlink.on('componentWillUpdate', () => {
+        wasWillUpdateCalled = true;
+      });
+
+      comlink.on('componentDidUpdate', () => {
+        wasDidUpdateCalled = true;
+      });
 
       component.forceUpdate();
 
-      expect(willSpy).toHaveBeenCalled();
-      expect(didSpy).toHaveBeenCalled();
+      expect(wasWillUpdateCalled).toBe(true);
+      expect(wasDidUpdateCalled).toBe(true);
     });
 
-    it('Should accept a callback', () => {
+    it('Should accept a callback', (done) => {
       let component = new TestComponent(),
-          spy = expect.createSpy();
+          callCount = 0;
 
-      component.forceUpdate(spy);
+      comlink.on('render', () => {
+        callCount += 1;
+      });
 
-      expect(spy).toHaveBeenCalled();
+      component.forceUpdate(() => {
+        expect(callCount).toBe(1);
+        done();
+      });
     });
   });
 
@@ -391,7 +469,7 @@ describe('Component', () => {
       comlink.emit('listen_to_test');
     });
 
-    it('Should set the context to the component', (done) => {
+    it('should set the context to the component', (done) => {
       let component = new TestComponent();
 
       component.listenTo(comlink, 'listen_to_test', function () {
@@ -431,29 +509,31 @@ describe('Component', () => {
 
     it('Should only fire once', () => {
       let component = new TestComponent(),
-          spy = expect.createSpy();
+          callCount = 0;
 
-      component.listenToOnce(comlink, 'listen_to_test', spy);
+      component.listenToOnce(comlink, 'listen_to_test', () => {
+        callCount += 1;
+      });
 
       comlink.emit('listen_to_test');
       comlink.emit('listen_to_test');
 
-      expect(spy).toHaveBeenCalled();
-      expect(spy.calls.length).toBe(1);
+      expect(callCount).toBe(1);
     });
 
     it('Should remove itself from component listeners', () => {
       let component = new TestComponent(),
-          spy = expect.createSpy();
+          callCount = 0;
 
-      component.listenToOnce(comlink, 'listen_to_test', spy);
+      component.listenToOnce(comlink, 'listen_to_test', () => {
+        callCount += 1;
+      });
 
       expect(component._listeners.length).toBe(1, 'Component should have 1 listener');
 
       comlink.emit('listen_to_test');
 
-      expect(spy).toHaveBeenCalled();
-      expect(spy.calls.length).toBe(1);
+      expect(callCount).toBe(1);
       expect(component._listeners.length).toBe(0, `Component should have no listeners. Found ${component._listeners.length}`);
     });
   });
@@ -461,9 +541,13 @@ describe('Component', () => {
   describe('#off()', () => {
     it('Should remove an event listener', () => {
       let component = new TestComponent(),
-          spy = expect.createSpy();
+          callCount = 0;
 
-      component.on('off_test', spy);
+      expect(callCount).toBe(0);
+
+      component.on('off_test', () => {
+        callCount += 1;
+      });
 
       expect(component._listeners.length).toBe(1);
 
@@ -471,8 +555,7 @@ describe('Component', () => {
       component.off('off_test');
       component.emit('off_test');
 
-      expect(spy).toHaveBeenCalled();
-      expect(spy.calls.length).toBe(1);
+      expect(callCount).toBe(1);
       expect(component._listeners.length).toBe(0);
     });
   });
@@ -480,22 +563,23 @@ describe('Component', () => {
   describe('#on()', () => {
     it('Should add an event listener', () => {
       let component = new TestComponent(),
-          spy = expect.createSpy();
+          callCount = 0;
 
-      component.on('on_test', spy);
+      component.on('on_test', () => {
+        callCount += 1;
+      });
 
       component.emit('on_test');
       component.emit('on_test');
 
-      expect(spy).toHaveBeenCalled();
-      expect(spy.calls.length).toBe(2);
+      expect(callCount).toBe(2);
       expect(component._listeners.length).toBe(1);
 
       component.off('on_test');
 
       component.emit('on_test');
 
-      expect(spy.calls.length).toBe(2);
+      expect(callCount).toBe(2);
       expect(component._listeners.length).toBe(0);
     });
   });
@@ -503,22 +587,22 @@ describe('Component', () => {
   describe('#remove()', () => {
     it('Should call componentWillUnmount and remove listeners', () => {
       let component = new TestComponent(),
-          spy = expect.createSpy(),
-          willSpy = expect.spyOn(component, 'componentWillUnmount');
+          callCount = 0,
+          spy = expect.spyOn(component, 'componentWillUnmount');
 
-      component.on('remove_test', spy);
+      component.on('remove_test', () => {
+        callCount += 1;
+      });
 
       component.emit('remove_test');
 
-      expect(spy.calls.length).toBe(1);
+      expect(callCount).toBe(1);
 
       component.remove();
       component.emit('remove_test');
 
-      expect(willSpy).toHaveBeenCalled();
-      expect(willSpy.calls.length).toBe(1);
-      expect(spy).toHaveBeenCalled();
-      expect(spy.calls.length).toBe(1);
+      expect(spy.calls.length).toEqual(1);
+      expect(callCount).toBe(1);
     });
   });
 
@@ -533,24 +617,13 @@ describe('Component', () => {
   describe('#renderComponent()', () => {
     it('Should write to console', () => {
       let component = new TestComponent(),
-          ceptor = new StdoutInterceptor(),
-          output = "";
+          output;
 
       ceptor.capture();
-      Component.mount(component);
+      component.renderComponent();
       output = ceptor.release();
 
       expect(output).toBe('Hello world');
-    });
-
-    it('Should write new content after state update', () => {
-      let component = new TestComponent();
-
-      component.setState({
-        name: 'Jerry'
-      });
-
-      expect(component._content).toBe('Hello world\n');
     });
   });
 
@@ -559,32 +632,36 @@ describe('Component', () => {
       let component = new TestComponent(),
           willUpdateSpy = expect.spyOn(component, 'componentWillUpdate'),
           didUpdateSpy = expect.spyOn(component, 'componentDidUpdate'),
-          spy = expect.createSpy();
+          callCount = 0;
 
       component.set('state', {
         name: 'Jerry'
-      }, spy);
+      }, () => {
+        callCount += 1;
+      });
 
-      expect(willUpdateSpy).toHaveBeenCalled();
-      expect(willUpdateSpy).toHaveBeenCalledWith({}, { name: 'Jerry' });
-      expect(didUpdateSpy).toHaveBeenCalled();
-      expect(didUpdateSpy).toHaveBeenCalledWith({}, { });
-      expect(spy).toHaveBeenCalled();
+      expect(willUpdateSpy.calls.length).toBe(1);
+      expect(willUpdateSpy.calls[0].arguments).toEqual([{}, { name: 'Jerry' }]);
+      expect(didUpdateSpy.calls.length).toBe(1);
+      expect(didUpdateSpy.calls[0].arguments).toEqual([{}, { }]);
+      expect(callCount).toBe(1);
     });
 
     it('Should not update props', () => {
       let component = new TestComponent(),
           willUpdateSpy = expect.spyOn(component, 'componentWillUpdate'),
           didUpdateSpy = expect.spyOn(component, 'componentDidUpdate'),
-          spy = expect.createSpy();
+          callCount = 0;
 
       component.set('props', {
         name: 'Jerry'
-      }, spy);
+      }, () => {
+        callCount += 1;
+      });
 
-      expect(willUpdateSpy).toNotHaveBeenCalled();
-      expect(didUpdateSpy).toNotHaveBeenCalled();
-      expect(spy).toHaveBeenCalled();
+      expect(willUpdateSpy.calls.length).toBe(0);
+      expect(didUpdateSpy.calls.length).toBe(0);
+      expect(callCount).toBe(1);
     });
   });
 
@@ -599,10 +676,10 @@ describe('Component', () => {
       });
 
       expect(component.state.name).toBe('Jerry');
-      expect(willUpdateSpy).toHaveBeenCalled();
-      expect(willUpdateSpy).toHaveBeenCalledWith({}, { name: 'Jerry' });
-      expect(didUpdateSpy).toHaveBeenCalled();
-      expect(didUpdateSpy).toHaveBeenCalledWith({}, {});
+      expect(willUpdateSpy.calls.length).toBe(1);
+      expect(willUpdateSpy.calls[0].arguments).toEqual([{}, { name: 'Jerry' }]);
+      expect(didUpdateSpy.calls.length).toBe(1);
+      expect(didUpdateSpy.calls[0].arguments).toEqual([{}, {}]);
 
       component.setState({
         name: 'Gary'
@@ -610,28 +687,31 @@ describe('Component', () => {
 
       expect(component.state.name).toBe('Gary');
       expect(willUpdateSpy.calls.length).toBe(2);
-      expect(willUpdateSpy).toHaveBeenCalledWith({}, { name: 'Gary' });
+      expect(willUpdateSpy.calls[1].arguments).toEqual([{}, { name: 'Gary' }]);
       expect(didUpdateSpy.calls.length).toBe(2);
-      expect(didUpdateSpy).toHaveBeenCalledWith({}, { name: 'Jerry' });
+      expect(didUpdateSpy.calls[1].arguments).toEqual([{}, { name: 'Jerry' }]);
     });
   });
 
   describe('#stopListening()', () => {
     it('Should remove listeners', () => {
       let component = new TestComponent(),
-          spy = expect.createSpy(),
+          callCount = 0,
+          listener = () => {
+            callCount += 1;
+          },
           vent = new EventEmitter();
 
       expect(component._listeners.length).toBe(0, 'Listeners length should be 0');
 
-      component.listenTo(vent, 'listen_to_test', spy);
+      component.listenTo(vent, 'listen_to_test', listener);
 
       expect(component._listeners.length).toBe(1, 'Listeners length should be 1');
 
       vent.emit('listen_to_test');
 
       expect(component._listeners.length).toBe(1, 'Listeners length is not 1');
-      expect(spy).toHaveBeenCalled('"listen_to_test" should have been called.');
+      expect(callCount).toBe(1, 'Call count should be 1.');
 
       component.stopListening(vent);
 
@@ -639,26 +719,28 @@ describe('Component', () => {
       expect(component._listeners.length).toBe(0, `Listeners length is not 0. Found ${component._listeners.length}`);
 
       vent.emit('listen_to_test');
-      expect(spy.calls.length).toBe(1, `Call count should still be 1. Found ${spy.calls.length}.`);
+      expect(callCount).toBe(1, `Call count should still be 1. Found ${callCount}.`);
     });
 
-    it('Should remove all listeners', () => {
+    it('Should remove all listeners', (done) => {
       let component = new TestComponent(),
           vent = new EventEmitter(),
+          callCount = 0,
           events = [],
-          spy = expect.createSpy()
-                  .andCall((name) => {
-                    events.push(name);
-                  });
+          listener = (name) => {
+            callCount += 1;
+            events.push(name);
+          };
 
-      component.on('remove_test', spy);
-      component.listenTo(vent, 'remove_test', spy);
+      component.on('remove_test', listener);
+      component.listenTo(vent, 'remove_test', listener);
 
       component.emit('remove_test', 'component');
       vent.emit('remove_test', 'vent');
 
-      expect(spy).toHaveBeenCalled();
-      expect(spy.calls.length).toBe(2);
+      expect(callCount).toBe(2);
+
+      expect(component._listeners[1].handler).toBe(vent._events.remove_test);
 
       component.stopListening();
 
@@ -668,7 +750,8 @@ describe('Component', () => {
       expect(component.listenerCount('remove_test')).toBe(0);
       expect(vent.listenerCount('remove_test')).toBe(0);
       expect(events).toEqual(['component', 'vent']);
-      expect(spy.calls.length).toBe(2);
+      expect(callCount).toBe(2);
+      done();
     });
   });
 });

@@ -3,6 +3,8 @@ class MockStdin extends Readable {
   contents = [];
   cursor = 0;
   closed = false;
+  isRaw = true;
+  isTTY = true;
 
   constructor (contents, ...args) {
     super(...args);
@@ -12,11 +14,15 @@ class MockStdin extends Readable {
     }
   }
 
-  close () {
+  end () {
     if (this.closed) return;
     this.pause();
     this.closed = true;
     this.emit('close');
+  }
+
+  setRawMode (mode) {
+    this.isRaw = mode;
   }
 
   _read () {
