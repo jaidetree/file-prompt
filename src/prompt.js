@@ -1,5 +1,5 @@
 /* eslint no-magic-numbers: 0  */
-import readline from 'readline';
+// import readline from 'readline';
 import colors from 'chalk';
 
 /**
@@ -49,42 +49,34 @@ class Prompt {
    * @returns {Promise} - Returns an ES6 promise object
    */
   beckon (question) {
-    // Create the readline interface
-    let rl = this.rl = readline.createInterface({
-      input: this.options.stdin,
-      output: this.options.stdout
-    });
-
     if (question) {
       this.text = question;
     }
+
+    // Set the encoding to support more characters from input
+    this.options.stdin.setEncoding('utf8');
+
+    // Prepend one line break
+    this.options.stdout.write('\n');
+    // Beckon the question!
+    this.options.stdout.write(this.formatText() + this.formatPrompt());
 
     // Create our promise
     return new Promise((resolve, reject) => {
       // Try asking a question with the readline interface
       try {
-        this.options.stdin.once('end', () => {
-          this.close();
-          reject('Input stream closed.');
+        this.options.stdin.on('readable', () => {
+          let chunk = this.options.stdin.read();
+
+          if (chunk !== null) {
+            this.close();
+            resolve(chunk.toString().trim());
+          }
         });
-
-        // Set the prompt character to be cool
-        rl.setPrompt(this.formatText() + this.formatPrompt());
-
-        rl.on('line', (line) => {
-          resolve(line.trim());
-        });
-
-        this.options.stdout.write('\n');
-
-        // Setup some close handlers just in case
-        rl.once('close', this.close);
 
         // Make sure that when the process exits we clean up after ourselves
-        process.once('exit', this.close);
-
-        // Beckon that prompt!
-        rl.prompt();
+        process.once('exit', this.close.bind(this));
+        process.once('SIGINT', this.close.bind(this));
       }
       catch (e) {
         // Close the interface
@@ -103,10 +95,7 @@ class Prompt {
    * @public
    */
   close () {
-    if (!this.rl) return;
-    process.removeListener('exit', this.close);
-    // this.rl.close();
-    // this.options.stdin.end();
+    this.options.stdin.end();
   }
 
   /**

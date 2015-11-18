@@ -61,7 +61,7 @@ describe('App', () => {
       Component.mount(app);
       ceptor.release();
 
-      expect(ceptor.toString()).toBe('\x1b[37m\x1b[1m*** COMMANDS ***\x1b[22m\x1b[39m1 \x1b[34m\x1b[1mD\x1b[22m\x1b[39mirectories\t\n,2 \x1b[34m\x1b[1mF\x1b[22m\x1b[39miles\t\n,3 \x1b[34m\x1b[1mG\x1b[22m\x1b[39mlob string\t\n,4 \x1b[34m\x1b[1mC\x1b[22m\x1b[39mhanged from git\t\n[object Promise]\n');
+      expect(ceptor.toString()).toBe('\x1b[37m\x1b[1m*** COMMANDS ***\x1b[22m\x1b[39m\n  1: \x1b[35m\x1b[1md\x1b[22m\x1b[39mirectories      2: \x1b[35m\x1b[1mf\x1b[22m\x1b[39miles            3: \x1b[35m\x1b[1mg\x1b[22m\x1b[39mlob             4: \x1b[35m\x1b[1mc\x1b[22m\x1b[39mhanged        \n  5: \x1b[35m\x1b[1mh\x1b[22m\x1b[39melp             6: \x1b[35m\x1b[1mq\x1b[22m\x1b[39muit           \n\x1b[34m\x1b[1mWhat do you seek?\x1b[22m\x1b[39m\x1b[35m\x1b[1m > \x1b[22m\x1b[39m');
     });
 
   });

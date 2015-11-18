@@ -7,32 +7,38 @@ const MENU_OPTIONS = [
       {
         id: 1,
         label: 'directories',
-        key: 'd'
+        name: 'directories',
+        value: 'directories'
       },
       {
         id: 2,
         label: 'files',
-        key: 'f'
+        name: 'files',
+        value: 'files'
       },
       {
         id: 3,
         label: 'glob',
-        key: 'g'
+        name: 'glob',
+        value: 'glob'
       },
       {
         id: 4,
         label: 'changed',
-        key: 'c'
+        name: 'changed',
+        value: 'changed'
       },
       {
         id: 5,
         label: 'help',
-        key: 'h'
+        name: 'help',
+        value: 'help'
       },
       {
         id: 6,
-        label: 'exit',
-        key: 'q'
+        label: 'quit',
+        name: 'quit',
+        value: 'quit'
       }
 ];
 
@@ -79,6 +85,19 @@ class IndexPage extends Page {
     };
   }
 
+  /**
+   * Process Input
+   * Deal with the answer from our prompt
+   *
+   * @method
+   * @public
+   * @param {object} intro [description]
+   */
+  processInput (answer) {
+    this.props.menu.each((option) => {
+    });
+  }
+
   renderIntro () {
     return colors.white.bold(this.intro) + '\n';
   }
@@ -86,9 +105,7 @@ class IndexPage extends Page {
   renderPrompt () {
     return () => {
       this.props.prompt.beckon(this.question)
-        .then((answer) => {
-          console.log(answer);
-        });
+        .then(this.processInput);
     };
   }
 

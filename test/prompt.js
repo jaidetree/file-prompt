@@ -65,7 +65,6 @@ describe('Prompt', () => {
     it('Should prompt the user for input', (done) => {
       let stdin = new MockStdin(['Test string']),
           stdout = new MockStdout(),
-          expected = colors.blue.bold(PROMPT_TEXT),
           prompt = new Prompt(PROMPT_TEXT, {
             stdout,
             stdin
@@ -75,7 +74,7 @@ describe('Prompt', () => {
         .then((answer) => {
           expect(answer).toBe('Test string');
           stdout.write(answer);
-          expect(stdout.output).toBe(`${expected}Test string`);
+          expect(stdout.output).toBe('\n\x1b[34m\x1b[1mIs this working\x1b[22m\x1b[39m\x1b[35m\x1b[1m > \x1b[22m\x1b[39mTest string');
         }, (e) => {
           throw e;
         })
@@ -85,7 +84,6 @@ describe('Prompt', () => {
     it('Should accept an empty response', (done) => {
       let stdin = new MockStdin(['']),
           stdout = new MockStdout(),
-          expected = colors.blue.bold(PROMPT_TEXT),
           prompt = new Prompt(PROMPT_TEXT, {
             stdout,
             stdin
@@ -93,9 +91,9 @@ describe('Prompt', () => {
 
       return prompt.beckon()
         .then((answer) => {
-          expect(answer).toBe('');
+          expect(answer).toNotExist();
           stdout.write(answer);
-          expect(stdout.output).toBe(expected);
+          expect(stdout.output).toBe('\n\x1b[34m\x1b[1mIs this working\x1b[22m\x1b[39m\x1b[35m\x1b[1m > \x1b[22m\x1b[39m');
         }, (e) => {
           throw e;
         })
