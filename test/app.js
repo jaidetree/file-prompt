@@ -23,6 +23,10 @@ class TestComponent extends Component {
 App.PAGES.test = TestComponent;
 
 describe('App', () => {
+  after(() => {
+    process.stdin.end();
+  });
+
   afterEach(() => {
     expect.restoreSpies();
   });

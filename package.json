@@ -25,10 +25,17 @@
   "homepage": "https://github.com/jayzawrotny/file-prompt#readme",
   "dependencies": {
     "chalk": "^1.1.1",
+    "minimatch": "^3.0.0",
     "underscore": "^1.8.3"
   },
   "devDependencies": {
+    "gulp": ">= 3.9.0 < 4",
     "file-prompt-gulp": "file:gulp",
-    "file-prompt-tests": "file:tests"
+    "file-prompt-tests": "file:test",
+    "babel-core": ">= 6.1.4 < 7",
+    "babel-eslint": ">= ^4.1.4",
+    "babel-polyfill": "^6.1.19",
+    "babel-preset-es2015": ">= 6.1.4 <= 7",
+    "babel-preset-stage-0": ">= 6.1.2 < 7"
   }
 }

@@ -63,20 +63,19 @@ class Prompt {
 
     // Create our promise
     return new Promise((resolve, reject) => {
+      let readable = () => {
+        let chunk = this.options.stdin.read();
+
+        if (chunk !== null) {
+          this.options.stdin.removeListener('readable', readable);
+          resolve(chunk.toString().trim());
+        }
+      };
+
       // Try asking a question with the readline interface
       try {
-        this.options.stdin.on('readable', () => {
-          let chunk = this.options.stdin.read();
-
-          if (chunk !== null) {
-            this.close();
-            resolve(chunk.toString().trim());
-          }
-        });
-
-        // Make sure that when the process exits we clean up after ourselves
-        process.once('exit', this.close.bind(this));
-        process.once('SIGINT', this.close.bind(this));
+        this.options.stdin.removeListener('readable', readable);
+        this.options.stdin.on('readable', readable);
       }
       catch (e) {
         // Close the interface

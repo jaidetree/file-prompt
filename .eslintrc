@@ -27,7 +27,7 @@
 
     "comma-dangle": 2, // ............................... Disallow or enforce trailing commas (recommended)
     "no-cond-assign": 2, // ............................. Disallow assignment in conditional expressions (recommended)
-    "no-console": 0, // ................................. Disallow use of console in the node environment (recommended
+    "no-console": 1, // ................................. Disallow use of console in the node environment (recommended
     "no-constant-condition": 2, // ...................... Disallow use of constant expressions in conditions (recommended)
     "no-control-regex": 2, // ........................... Disallow control characters in regular expressions (recommended)
     "no-debugger": 2,  // ............................... Disallow use of debugger (recommended)

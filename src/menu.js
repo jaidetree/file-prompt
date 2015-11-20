@@ -26,6 +26,20 @@ class Menu extends Component {
     super(props);
   }
 
+  /**
+   * Get Default Props
+   * Returns get default props
+   *
+   * @method
+   * @public
+   * @returns {object} Default properties for the menu instance
+   */
+  getDefaultProps () {
+    return {
+      options: []
+    };
+  }
+
   /** HELPER METHODS */
 
   /**
@@ -55,7 +69,7 @@ class Menu extends Component {
   error (searchFor, reject) {
     let msg = colors.red.bold(`Huh (${searchFor})?`);
 
-    if (reject) reject(new Error(msg)); else console.log(msg);
+    if (reject) reject(new Error(msg), searchFor); else console.log(msg);
   }
 
   /**
@@ -77,10 +91,14 @@ class Menu extends Component {
             subtract: [],
             updated: false
           },
+          hasErrors = false,
           queries;
 
       // If the searchFor pattern is invalid then reject
-      if (!Query.isValid(searchFor)) return this.error(searchFor, reject);
+      if (!Query.isValid(searchFor)) {
+        hasErrors = true;
+        return this.error('1000:' + searchFor, reject);
+      }
 
       // Create the queries from the search for pattern.
       queries = Query.createFrom(searchFor);
@@ -113,6 +131,10 @@ class Menu extends Component {
          */
         case 'id':
           data = this.hasOption(value) ? [value] : [];
+          if (data.length === 0) {
+            hasErrors = true;
+            reject(null);
+          } 
           break;
 
         /**
@@ -129,8 +151,8 @@ class Menu extends Component {
          * message. Note the promise will not be rejected but we should
          * tell the user nothing was found by that query param.
          */
-        if (!data || !data.length) {
-          return this.error(query.toString());
+        if ((!data || !data.length) && !hasErrors) {
+          return this.error('2000:' + query.toString());
         }
 
         // Update the proper selections by the parsed query action
@@ -144,7 +166,11 @@ class Menu extends Component {
        * No selections were made at all so lets throw an error and reject
        * this promise.
        */
-      if (!selections.udpated) return this.error(searchFor, reject);
+      // if (!selections.updated && !hasErrors) {
+      //   return this.error('3000:' + searchFor);
+      // }
+
+      if (!selections.updated) return reject(searchFor);
 
       resolve(selections.add, selections.subtract);
     });
@@ -164,7 +190,7 @@ class Menu extends Component {
      * If the results are 0 or more than 1 return an empty array because
      * name searches need to match only 1 item to be valid.
      */
-    if (results !== 1) return [];
+    if (results.length !== 1) return [];
 
     return results.map((option) => option.id);
   }

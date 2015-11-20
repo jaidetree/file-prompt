@@ -86,15 +86,76 @@ class IndexPage extends Page {
   }
 
   /**
+   * Prompt
+   * Beckons the prompt
+   *
+   * @method
+   * @public
+   */
+  prompt () {
+    this.props.prompt.beckon(this.question)
+      .then(this.processInput.bind(this))
+      .then((selections) => {
+        return this.props.menu.select(selections);
+      })
+      .then((selectedItems) => {
+        let item = selectedItems[0];
+
+        console.log(item);
+
+        switch (item.value) {
+        case 'quit':
+          this.quit();
+          break;
+
+        case 'help':
+          this.showHelp();
+          throw new Error('restart');
+
+        default:
+          this.props.comlink.emit('app:navigate', item.value);
+          break;
+        }
+      })
+      .catch((e) => {
+        if (e.message) console.log(e.message);
+        process.stdout.write(this.renderIntro());
+        process.stdout.write(this.renderMenu());
+        this.prompt();
+      });
+  }
+
+  /**
    * Process Input
    * Deal with the answer from our prompt
    *
    * @method
    * @public
-   * @param {object} intro [description]
+   * @param {string} answer - User input value
+   * @returns {promise} Returns a promise to return the result
    */
   processInput (answer) {
-    return this.menu.find(answer, (queries) => queries[0]);
+    return this.props.menu.find(answer, (queries) => queries.slice(0, 1));
+  }
+
+  /**
+   * Quit
+   * Closes the app and writes a goodbye message.
+   */
+  quit () {
+    process.stdout.write('Later skater!\n');
+    process.exit(1);
+  }
+
+  /**
+   * Show Help
+   * Displays the instructions for this app
+   *
+   * @method
+   * @public
+   */
+  showHelp () {
+    process.stdout.write(colors.red.bold('HELP') + '\n');
   }
 
   renderIntro () {
@@ -102,16 +163,7 @@ class IndexPage extends Page {
   }
 
   renderPrompt () {
-    return () => {
-      this.props.prompt.beckon(this.question)
-        .then(this.processInput)
-        .then((selections) => {
-          return this.menu.select(selections);
-        })
-        .then((selectedItem) => {
-          console.log(selectedItem);
-        });
-    };
+    return this.prompt.bind(this);
   }
 
   renderMenu () {
