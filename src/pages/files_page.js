@@ -28,8 +28,7 @@ import Prompt from '../prompt';
  * @returns {array} Array of menu options
  */
 function getFiles (pattern) {
-  console.log(files);
-  return glob.sync(path.join(__dirname, pattern), { cwd: process.cwd() })
+  return glob.sync(path.join(process.cwd(), pattern), { cwd: process.cwd() })
     .map((filename, i) => {
       return {
         id: i + 1,
@@ -51,7 +50,7 @@ function getFiles (pattern) {
  */
 class FilesPage extends Page {
 
-  question = 'Files';
+  question = 'Add files';
 
   /**
    * Constructor
@@ -76,8 +75,22 @@ class FilesPage extends Page {
   getDefaultProps () {
     return {
       filepath: 'src/*.js',
-      menu: new VerticalMenu(),
       prompt: new Prompt()
+    };
+  }
+
+  /**
+   * Get Initial State
+   * Initializes this component's state
+   *
+   * @method
+   * @public
+   * @returns {object} Initial state properties
+   */
+  getInitialState () {
+    return {
+      selections: [],
+      menu: new VerticalMenu()
     };
   }
 
@@ -89,29 +102,52 @@ class FilesPage extends Page {
    * @public
    */
   prompt () {
+    let reprompt = () => {
+      process.stdout.write(this.renderMenu());
+      this.prompt();
+    };
+
     this.props.prompt.beckon(this.question)
+      .then(this.processInput.bind(this))
       .then((selections, unselections) => {
         return this.props.menu.select(selections, unselections);
       })
-      .then((selectedFiles) => {
-        console.log(selectedFiles);
+      .then((selectedItems) => {
+        console.log(selectedItems);
+        reprompt();
       })
-      .catch((e, input) => {
-        if (!input) return this.props.comlink.emit('app:navigate', 'index');
-        process.stdout.write(e.stack || e.message);
-        process.stdout.write('\n');
-        this.prompt();
+      .catch((e) => {
+        if (!e) return this.props.comlink.emit('app:navigate', 'index');
+
+        if (e && e.message) {
+          process.stdout.write(e.stack || e.message);
+          process.stdout.write('\n');
+        }
+
+        reprompt();
       });
+  }
+
+  /**
+   * Process Input
+   * Deal with the answer from our prompt
+   *
+   * @method
+   * @public
+   * @param {string} answer - User input value
+   * @returns {promise} Returns a promise to return the result
+   */
+  processInput (answer) {
+    return this.props.menu.find(answer);
+  }
+
+  renderMenu () {
+    this.state.menu.props.options = getFiles(this.props.filepath);
+    return this.state.menu.render();
   }
 
   renderPrompt () {
     return this.prompt.bind(this);
-  }
-
-  renderMenu () {
-    console.log(getFiles(this.props.filepath));
-    this.props.menu.props.options = getFiles(this.props.filepath);
-    return this.props.menu.render();
   }
 }
 

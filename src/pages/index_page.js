@@ -93,6 +93,12 @@ class IndexPage extends Page {
    * @public
    */
   prompt () {
+    let reprompt = () => {
+      process.stdout.write(this.renderIntro());
+      process.stdout.write(this.renderMenu());
+      this.prompt();
+    };
+
     this.props.prompt.beckon(this.question)
       .then(this.processInput.bind(this))
       .then((selections) => {
@@ -101,8 +107,6 @@ class IndexPage extends Page {
       .then((selectedItems) => {
         let item = selectedItems[0];
 
-        console.log(item);
-
         switch (item.value) {
         case 'quit':
           this.quit();
@@ -110,7 +114,8 @@ class IndexPage extends Page {
 
         case 'help':
           this.showHelp();
-          throw new Error('restart');
+          reprompt();
+          break;
 
         default:
           this.props.comlink.emit('app:navigate', item.value);
@@ -118,10 +123,8 @@ class IndexPage extends Page {
         }
       })
       .catch((e) => {
-        if (e.message) console.log(e.message);
-        process.stdout.write(this.renderIntro());
-        process.stdout.write(this.renderMenu());
-        this.prompt();
+        if (e && e.message) console.log(e.stack || e.message);
+        reprompt();
       });
   }
 
@@ -167,7 +170,7 @@ class IndexPage extends Page {
   }
 
   renderMenu () {
-    return this.props.menu.render();
+    return this.props.menu.render() + '\n';
   }
 }
 

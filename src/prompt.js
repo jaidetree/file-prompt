@@ -56,8 +56,6 @@ class Prompt {
     // Set the encoding to support more characters from input
     this.options.stdin.setEncoding('utf8');
 
-    // Prepend one line break
-    this.options.stdout.write('\n');
     // Beckon the question!
     this.options.stdout.write(this.formatText() + this.formatPrompt());
 

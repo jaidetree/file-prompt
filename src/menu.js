@@ -94,6 +94,8 @@ class Menu extends Component {
           hasErrors = false,
           queries;
 
+      if (searchFor.trim() === "") return reject(null);
+
       // If the searchFor pattern is invalid then reject
       if (!Query.isValid(searchFor)) {
         hasErrors = true;
@@ -134,7 +136,7 @@ class Menu extends Component {
           if (data.length === 0) {
             hasErrors = true;
             reject(null);
-          } 
+          }
           break;
 
         /**

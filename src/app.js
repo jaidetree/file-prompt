@@ -81,10 +81,41 @@ class App extends Component {
 
   componentWillMount () {
     this.props.comlink.on('app:navigate', this.navigate.bind(this));
+    this.props.comlink.on('file:add', this.addFile.bind(this));
+    this.props.comlink.on('file:remove', this.removeFile.bind(this));
   }
 
   componentWillUnmount () {
     this.props.comlink.off('app:navigate', this.navigate.bind(this));
+  }
+
+  /**
+   * Add File
+   * Adds a file to our state
+   *
+   * @method
+   * @param {string} filename - Filename to add
+   */
+  addFile (filename) {
+    let files = this.state.files.slice();
+
+    files.push(filename);
+    this.setState({ files });
+  }
+
+  /**
+   * Remove File
+   * Removes a file from state
+   *
+   * @method
+   * @param {string} filename - Filename to remove
+   */
+  removeFile (filename) {
+    let files = this.state.files.slice();
+    
+    files = files.splice(files.indexOf(filename), 1);
+
+    this.setState({ files });
   }
 
   /**
@@ -99,7 +130,8 @@ class App extends Component {
    */
   getPage (pageName, extraProps) {
     let props = {
-      comlink: this.props.comlink
+      comlink: this.props.comlink,
+      files: this.state.files
     };
 
     if (!App.PAGES.hasOwnProperty(pageName)) {
