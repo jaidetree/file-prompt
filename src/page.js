@@ -1,4 +1,5 @@
 import Component from './component';
+import { navigate } from './actions';
 
 /**
  * Page
@@ -18,6 +19,13 @@ class Page extends Component {
     super(props);
   }
 
+  getDefaultProps () {
+    return {
+      stdin: process.stdin,
+      stdout: process.stdout
+    }
+  }
+
   /**
    * Get Initial State
    * Returns an object to be used as this component's initial state
@@ -33,62 +41,48 @@ class Page extends Component {
   }
 
   /**
-   * Select items
-   * Updates the state with the selected items.
+   * Dispatch
+   * Dispatches the targeted action
    *
    * @method
    * @public
-   * @param {array} options - List of options to select from
-   * @param {int|array} selectedIndexes - List of items to select
-   * @returns {array} The new list of selected items
+   * @param {object} action - Dispatches the given action object
+   * @returns {*} The result of the dispatch call
    */
-  selectItems (options, selectedIndexes) {
-    let selected = [],
-        chosen = selectedIndexes;
+  dispatch (action) {
+    return this.props.store.dispatch(action);
+  }
 
-    /**
-     * Error
-     * A reusble function to throw an error
-     */
-    function error () {
-      throw new Error(`Error:Page.selectItems: Page could not select items ${selectedIndexes.toString()}.`);
-    }
+  /**
+   * Navigate
+   * Navigates to another page
+   *
+   * @method
+   * @public
+   * @param {string} page - Target page name to navigate to
+   * @param {object} props - Extra props to pass into the next page
+   */
+  navigate (page, props = {}) {
+    this.dispatch(navigate(page, props));
+  }
 
-    // If chosen is an array, format them all as numbers
-    if (chosen && Array.isArray(chosen) && chosen.length) {
-      // Convert the selectedIndexes into an array of numeric indexes
-      chosen = chosen.map((item) => Number(item));
+  /**
+   * Select
+   * Selects data form the global app state
+   *
+   * @method
+   * @public
+   * @param {string} keystr - Name of the key to get period (.) separated
+   * @returns {*} Data stored in the state for that key string
+   */
+  select (keystr) {
+    let result = this.props.store.getState();
 
-      // Filter the options into what was selected
-      selected = options.filter((option, index) => {
-        return chosen.indexOf(index) > -1;
-      });
-
-      // Make sure our selected length is not empty.
-      if (selected.length === 0) error();
-    }
-
-    // If the selected indexes exists but is not an array
-    else if (typeof chosen === 'string' || typeof chosen === 'number') {
-      // Convert the selected index into a number
-      if (typeof chosen === 'string') {
-        chosen = Number(chosen);
-      }
-
-      // Attempt to push it into the selected array otherwise throw an error
-      if (!options[chosen]) {
-        error();
-      }
-
-      selected.push(options[chosen]);
-    }
-
-    // Finally update the state then return the newly selected items.
-    this.setState({
-      selected
+    keystr.split('.').map((key) => {
+      result = result[key]; 
     });
 
-    return selected;
+    return result;
   }
 
   /**

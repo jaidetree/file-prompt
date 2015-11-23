@@ -39,20 +39,25 @@ export default class Query {
   static createFrom (query) {
     // Separates the query into all groupings of strings, numbers, ranges
     // sequences etc... then map them into query instances for testing.
-    return query.match(/[-\/_a-zA-Z\d]+/g)
-      .filter((subQuery) => {
-        // No blanks.
-        if (subQuery === '') {
-          return false;
-        }
+    try { 
+      return query.split(/,| /g)
+        .filter((subQuery) => {
+          // No blanks.
+          if (subQuery === '') {
+            return false;
+          }
 
-        return true;
-      })
+          return true;
+        })
 
-      // Map them sub queries
-      .map((subQuery) => {
-        return new Query(subQuery);
-      });
+        // Map them sub queries
+        .map((subQuery) => {
+          return new Query(subQuery);
+        });
+    }
+    catch (e) {
+      return [];
+    }
   }
 
   /**
@@ -129,6 +134,18 @@ export default class Query {
   }
 
   /**
+   * Is Asterik
+   * If user has input an asterik to select all options
+   *
+   * @method
+   * @public
+   * @returns {boolean} If query is a range
+   */
+  isAsterik () {
+    return this.query.length <= 2 && /\*$/.test(this.query);
+  }
+
+  /**
    * Is Integer
    * Determiens if query is a integer or not
    *
@@ -185,14 +202,14 @@ export default class Query {
    */
   parse () {
     let data = {
-          action: 'add'
+          action: 'select'
         },
         query = this.query;
 
     // If this is a query to remove something, mark that and remove the
     // negative sign
     if (this.query.slice(0, 1) === '-') {
-      data.action = 'subtract';
+      data.action = 'unselect';
       query = this.query.slice(1);
     }
 
@@ -205,6 +222,9 @@ export default class Query {
     else if (this.isInteger()) {
       data.type = 'id';
       data.value = Number(query);
+    }
+    else if (this.isAsterik()) {
+      data.type = 'all';
     }
     // Guess you're a string then huh?
     else {

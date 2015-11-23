@@ -29,8 +29,13 @@ class Prompt {
    * @param {object} options - Options to initialize the prompt with.
    */
   constructor (text, options={}) {
-    if (text) {
+    if (text && typeof text === 'string') {
       this.text = text;
+    }
+
+    if (typeof text === 'object') {
+      options = text;
+      text = null;
     }
 
     if (options) {

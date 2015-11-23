@@ -1,8 +1,9 @@
 import Component from './component';
-import EventEmitter from 'events';
 import fs from 'fs'; 
 import minimatch from 'minimatch';
 import path from 'path';
+import reducers from './reducers';
+import { createStore } from 'redux';
 
 /**
  * Read Dir
@@ -18,15 +19,13 @@ function readDir (dir, glob) {
 
   fs.readdirSync(dir)
     // Filter out the ones that don't match the glob
-    .filter(mm.match.bind(mm))
+    .filter(mm.match, mm)
     // For each match lets append it to our files object
     .forEach((file) => {
       let name = path.basename(file, '_page.js');
 
       files[name] = require(path.resolve(__dirname, dir, file)).default;
     });
-
-  console.log(files);
 
   return files;
 }
@@ -56,111 +55,67 @@ class App extends Component {
    */
   constructor (props) {
     super(props);
+    this.store = createStore(reducers, { 
+      config: {
+        basedir: this.props.basedir
+      }, 
+      files: [], 
+      currentPage: {
+        name: 'index',
+        props: {}
+      }
+    });
   }
 
+  /**
+   * Get Default Props
+   * Returns the default properties object for this component instance
+   *
+   * @method
+   * @private
+   * @returns {object} Default component properties
+   */
   getDefaultProps () {
     return {
-      comlink: new EventEmitter(),
-      initialPage: 'index'
-    };
-  }
-
-  getInitialState () {
-    let initialPage = this.props.initialPage,
-        page = null;
-
-    if (initialPage) {
-      page = this.getPage(initialPage);
-    }
-
-    return {
-      page,
-      files: []
+      basedir: process.cwd()
     };
   }
 
   componentWillMount () {
-    this.props.comlink.on('app:navigate', this.navigate.bind(this));
-    this.props.comlink.on('file:add', this.addFile.bind(this));
-    this.props.comlink.on('file:remove', this.removeFile.bind(this));
+    this.unsubscribe = this.store.subscribe(() => {
+      this.forceUpdate();
+      Component.display(this);
+    });
   }
 
   componentWillUnmount () {
-    this.props.comlink.off('app:navigate', this.navigate.bind(this));
+    this.unsubscribe();
   }
 
   /**
-   * Add File
-   * Adds a file to our state
-   *
-   * @method
-   * @param {string} filename - Filename to add
-   */
-  addFile (filename) {
-    let files = this.state.files.slice();
-
-    files.push(filename);
-    this.setState({ files });
-  }
-
-  /**
-   * Remove File
-   * Removes a file from state
-   *
-   * @method
-   * @param {string} filename - Filename to remove
-   */
-  removeFile (filename) {
-    let files = this.state.files.slice();
-    
-    files = files.splice(files.indexOf(filename), 1);
-
-    this.setState({ files });
-  }
-
-  /**
-   * Get Page
+   * Render Page
    * Returns the requested page instance
    *
    * @method
    * @public
-   * @param {string} pageName - Name of the page to get
-   * @param {object} [extraProps] - Other props to send to initialize with
-   * @returns {Page} Returns a page subclass instance
+   * @returns {string} Returns a rendered page
    */
-  getPage (pageName, extraProps) {
-    let props = {
-      comlink: this.props.comlink,
-      files: this.state.files
-    };
+  renderPage () {
+    let currentPage = this.store.getState().currentPage,
+        props = {
+          store: this.store
+        };
 
-    if (!App.PAGES.hasOwnProperty(pageName)) {
-      throw new Error(`App: Page does not exist “${pageName}”.`);
+    if (!App.PAGES.hasOwnProperty(currentPage.name)) {
+      throw new Error(`App: Page does not exist “${currentPage.name}”.`);
     }
 
-    // Extend the default props with what is provided
-    if (extraProps) {
-      Object.assign(props, extraProps);
+    // If we have extra props called from navigate send those in
+    if (currentPage.props) {
+      Object.assign(props, currentPage.props);
     }
 
-    return new App.PAGES[pageName](props);
-  }
-
-  /**
-   * Navigate
-   * Sets the page state to the requested page name
-   *
-   * @method
-   * @public
-   * @param {string} pageName - Name of the page to navigate to
-   * @param {object} [props] - Other props to send to initialize the page with
-   */
-  navigate (pageName, props) {
-    this.setState({
-      page: this.getPage(pageName, props)
-    });
-
-    Component.display(this);
+    return new App.PAGES[currentPage.name](props).render();
   }
 
   /**
@@ -172,9 +127,7 @@ class App extends Component {
    * @returns {string} Returns the rendered page string
    */
   render () {
-    if (!this.state.page) return '';
-
-    return this.state.page.render();
+    return this.renderPage();
   }
 }
 

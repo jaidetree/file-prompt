@@ -8,6 +8,10 @@ class MockStdout extends Writable {
     super(...args);
   }
 
+  flush () {
+    this.output = "";
+  }
+
   toString () {
     return this.output.toString();
   }

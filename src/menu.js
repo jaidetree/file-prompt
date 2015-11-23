@@ -36,11 +36,33 @@ class Menu extends Component {
    */
   getDefaultProps () {
     return {
-      options: []
+      options: [],
+      canUnselect: false,
+      acceptsMany: false,
+      stdout: process.stdout,
+      stdin: process.stdin
     };
   }
 
   /** HELPER METHODS */
+
+  /**
+   * Error
+   * Tell the user the input was bad. If a reject method is available it
+   * sends an error message otherwise console.log.
+   *
+   * @param {string} searchFor - Original search param
+   * @param {function} [reject] - Optional reject callback if in promise
+   */
+  error (searchFor, reject) {
+    let msg = colors.red.bold(`Huh (${searchFor})? \n`);
+
+    this.props.stdout.write(msg);
+
+    if (reject) {
+      reject(searchFor);
+    }
+  }
 
   /**
    * Each
@@ -58,21 +80,6 @@ class Menu extends Component {
   }
 
   /**
-   * Error
-   * Tell the user the input was bad. If a reject method is available it
-   * sends an error message otherwise console.log.
-   *
-   * @method
-   * @param {string} searchFor - Original search param
-   * @param {function} [reject] - Optional reject callback if in promise
-   */
-  error (searchFor, reject) {
-    let msg = colors.red.bold(`Huh (${searchFor})?`);
-
-    if (reject) reject(new Error(msg), searchFor); else console.log(msg);
-  }
-
-  /**
    * Find
    * Looks for an option with the given input
    *
@@ -86,20 +93,21 @@ class Menu extends Component {
   find (searchFor, processor) {
     // Return a promise containing the selected ids or reject if invalid
     return new Promise((resolve, reject) => {
-      let selections = {
-            add: [],
-            subtract: [],
-            updated: false
-          },
+      let selections = [],
           hasErrors = false,
           queries;
 
-      if (searchFor.trim() === "") return reject(null);
+      if (searchFor.trim() === "") {
+        return resolve({ selectedItems: [{
+          action: null,
+          value: null
+        }], queryCount: 1 });
+      }
 
       // If the searchFor pattern is invalid then reject
       if (!Query.isValid(searchFor)) {
         hasErrors = true;
-        return this.error('1000:' + searchFor, reject);
+        return this.error(searchFor, reject);
       }
 
       // Create the queries from the search for pattern.
@@ -115,8 +123,22 @@ class Menu extends Component {
         let { type, action, value } = query.data,
             data;
 
+        if (action === 'unselect' && !this.props.canUnselect) {
+          hasErrors = true;
+          return this.error(query.toString());
+        }
+
         // Go by type of action
         switch (type) {
+
+        case 'all':
+          if (!this.props.acceptsMany) {
+            hasErrors = true;
+            return this.error(searchFor);
+          }
+
+          data = this.options().map((opt) => opt.id);
+          break;
 
         /**
          * If it's a range generate a range of ids which get filtered by if
@@ -132,11 +154,14 @@ class Menu extends Component {
          * empty array to be used later
          */
         case 'id':
-          data = this.hasOption(value) ? [value] : [];
-          if (data.length === 0) {
-            hasErrors = true;
-            reject(null);
+          if (this.hasOption(value)) {
+            data = [value];
           }
+          else {
+            hasErrors = true;
+            return null;
+          }
+
           break;
 
         /**
@@ -154,14 +179,20 @@ class Menu extends Component {
          * tell the user nothing was found by that query param.
          */
         if ((!data || !data.length) && !hasErrors) {
-          return this.error('2000:' + query.toString());
+          return this.error(query.toString());
         }
 
-        // Update the proper selections by the parsed query action
-        selections[action] = selections[action].concat(data);
+        data = data.map((id) => {
+          return {
+            action,
+            id,
+            type,
+            value: this.getOptionValue(id)
+          };
+        });
 
-        // State we have updated selections
-        if (!selections.updated) selections.updated = true;
+        // Update the proper selections by the parsed query action
+        selections = selections.concat(data);
       });
 
       /**
@@ -172,9 +203,9 @@ class Menu extends Component {
       //   return this.error('3000:' + searchFor);
       // }
 
-      if (!selections.updated) return reject(searchFor);
+      if (!selections.length) return reject(searchFor);
 
-      resolve(selections.add, selections.subtract);
+      resolve({ selectedItems: selections, queryCount: queries.length });
     });
   }
 
@@ -209,6 +240,19 @@ class Menu extends Component {
    */
   filter (callback, context=this) {
     return this.options().filter(callback, context);
+  }
+
+  /**
+   * Get Option Value
+   * Returns the value for the option of the given id.
+   *
+   * @method
+   * @public
+   * @param {int} id - Id to search for
+   * @returns {string} Value property of the given option id
+   */
+  getOptionValue (id) {
+    return this.filter((opt) => opt.id === id)[0].value;
   }
 
   /**
@@ -248,36 +292,6 @@ class Menu extends Component {
    */
   range (min, max) {
     return Array(max).map((value, i) => i + min).filter(this.hasOption);
-  }
-
-  /**
-   * Select
-   * Returns an array of options filtered by the chosen ids
-   *
-   * @method
-   * @public
-   * @param {array} chosen - An array of chosen item ids
-   * @returns {Promise} A promise that is resolved when we have retrieved the
-   *                    selected items.
-   */
-  select (chosen) {
-    return new Promise((resolve, reject) => {
-      let options;
-
-      if (!chosen || !Array.isArray(chosen) || !chosen.length) {
-        return reject(new Error('Menu.Select: No selections were provided.'));
-      }
-
-      options = this.options().filter((option) => {
-        return chosen.indexOf(option.id) > -1;
-      });
-
-      if (!options || !options.length) {
-        reject(new Error('Menu.Select: No selections were made.'));
-      }
-
-      resolve(options);
-    });
   }
 
   /** RENDER METHODS */

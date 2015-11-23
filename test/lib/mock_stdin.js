@@ -5,6 +5,7 @@ class MockStdin extends Readable {
   closed = false;
   isRaw = true;
   isTTY = true;
+  readable = false;
 
   constructor (contents, ...args) {
     super(...args);
@@ -12,6 +13,17 @@ class MockStdin extends Readable {
     if (contents) {
       this.contents = contents;
     }
+  }
+
+  get content () {
+    return this.contents.join('\n');
+  }
+
+  set content (contents) {
+    this.end();
+    this.closed = false;
+    this.contents = contents;
+    this.cursor = 0;
   }
 
   end () {

@@ -16,29 +16,4 @@ describe('Page', () => {
     });
 
   });
-
-  describe('#selectItems()', () => {
-    it('Should select a single item a list of options', () => {
-      let page = new Page();
-
-      expect(page.selectItems(['one', 'two', 'three'], 0)).toEqual(['one']);
-    });
-
-    it('Should select multiple items from a list options', () => {
-      let page = new Page();
-
-      expect(page.selectItems(['one', 'two', 'three'], [0, 2])).toEqual(['one', 'three']);
-    });
-
-    it('Should throw an error ', () => {
-      let page = new Page(),
-          output;
-
-      expect(() => {
-        output = page.selectItems(['one', 'two', 'three'], 3);
-      }).toThrow(Error, `Expected selectItems to throw an error instead found ${output}`);
-    });
-
-  });
-
 });

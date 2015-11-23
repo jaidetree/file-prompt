@@ -70,15 +70,17 @@ describe('Prompt', () => {
             stdin
           });
 
-      return prompt.beckon()
+      prompt.beckon()
         .then((answer) => {
           expect(answer).toBe('Test string');
           stdout.write(answer);
-          expect(stdout.output).toBe('\n\x1b[34m\x1b[1mIs this working\x1b[22m\x1b[39m\x1b[35m\x1b[1m > \x1b[22m\x1b[39mTest string');
+          expect(stdout.output).toBe('\x1b[34m\x1b[1mIs this working\x1b[22m\x1b[39m\x1b[35m\x1b[1m > \x1b[22m\x1b[39mTest string');
         }, (e) => {
           throw e;
         })
         .then(done, done);
+
+      stdin.emit('readable');
     });
 
     it('Should accept an empty response', (done) => {
@@ -89,15 +91,17 @@ describe('Prompt', () => {
             stdin
           });
 
-      return prompt.beckon()
+      prompt.beckon()
         .then((answer) => {
           expect(answer).toNotExist();
           stdout.write(answer);
-          expect(stdout.output).toBe('\n\x1b[34m\x1b[1mIs this working\x1b[22m\x1b[39m\x1b[35m\x1b[1m > \x1b[22m\x1b[39m');
+          expect(stdout.output).toBe('\x1b[34m\x1b[1mIs this working\x1b[22m\x1b[39m\x1b[35m\x1b[1m > \x1b[22m\x1b[39m');
         }, (e) => {
           throw e;
         })
         .then(done, done);
+
+      stdin.emit('readable');
     });
 
     it('Should fail when input stream is closed', (done) => {
@@ -113,6 +117,8 @@ describe('Prompt', () => {
           expect(err).toBe('Input stream closed.');
         })
         .then(done, done);
+
+      stdin.emit('readable');
 
       stdin.end();
     });

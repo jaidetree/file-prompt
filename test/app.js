@@ -6,11 +6,9 @@ import StdoutInterceptor from './lib/stdout_interceptor';
 const DEFINED_METHODS = [
   'constructor',
   'getDefaultProps',
-  'getInitialState',
   'componentWillMount',
   'componentWillUnmount',
-  'getPage',
-  'navigate',
+  'renderPage',
   'render'
 ];
 
@@ -69,44 +67,6 @@ describe('App', () => {
     });
 
   });
-
-  describe('#navigate()', () => {
-    it('Should update the component state', () => {
-      let app = new App();
-
-      app.navigate('test');
-      expect(app.state.page).toExist();
-      expect(app.state.page).toBeA(TestComponent);
-    });
-
-    it('Should throw an error if the page does not exist', () => {
-      let app = new App();
-
-      expect(() => {
-        app.navigate('fake');
-      }).toThrow(Error, 'App: Page does not exist “fake”.');
-    });
-
-    it('Should render the selected page', () => {
-      let spy = expect.spyOn(App.prototype, 'render').andCallThrough(),
-          app = new App(),
-          ceptor = new StdoutInterceptor(),
-          output;
-
-      ceptor.capture();
-      Component.mount(app);
-      ceptor.flush();
-      app.navigate('test');
-      ceptor.release();
-      output = ceptor.toString();
-
-      expect(spy).toHaveBeenCalled();
-      expect(spy.calls.length).toBe(2);
-      expect(output).toExist();
-      expect(output).toBe('Hello world\n');
-    });
-  });
-
 
 });
 

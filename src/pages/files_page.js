@@ -4,6 +4,7 @@ import VerticalMenu from '../vertical_menu';
 import Page from '../page';
 import path from 'path';
 import Prompt from '../prompt';
+import { addFile, removeFile } from '../actions';
 
 /**
  * Menu Options format
@@ -24,15 +25,16 @@ import Prompt from '../prompt';
  * Get Files
  * Returns an array of files to select
  *
+ * @param {string} basedir - Used to get relative path of file
  * @param {string} pattern - Glob string to look for
  * @returns {array} Array of menu options
  */
-function getFiles (pattern) {
-  return glob.sync(path.join(process.cwd(), pattern), { cwd: process.cwd() })
+function getFiles (basedir, pattern) {
+  return glob.sync(path.join(basedir, pattern), { cwd: process.cwd() })
     .map((filename, i) => {
       return {
         id: i + 1,
-        label: filename,
+        label: path.relative(basedir, filename),
         name: filename,
         value: filename
       };
@@ -73,10 +75,14 @@ class FilesPage extends Page {
    * @returns {object} Default FilesPage props
    */
   getDefaultProps () {
-    return {
-      filepath: 'src/*.js',
+    let data = super.getDefaultProps();
+
+    Object.assign(data, {
+      filter: '**/*.js',
       prompt: new Prompt()
-    };
+    });
+
+    return data;
   }
 
   /**
@@ -90,8 +96,42 @@ class FilesPage extends Page {
   getInitialState () {
     return {
       selections: [],
-      menu: new VerticalMenu()
+      menu: new VerticalMenu({ 
+        canUnselect: true,
+        acceptsMany: true
+      })
     };
+  }
+
+  updateFiles (updates) {
+    if (!Array.isArray(updates)) return;
+
+    console.log(updates);
+
+    updates.forEach((update) => {
+      if (update.action === "add") {
+        this.dispatch(addFile(update.value));
+      }
+      else {
+        this.dispatch(removeFile(update.value));
+      }
+    });
+  }
+
+  getBaseDir () {
+    return this.props.basedir || this.select('config.basedir');
+  }
+
+  /**
+   * Filter Files
+   * Returns the glob pattern to filter the files to build our menu
+   *
+   * @method
+   * @public
+   * @returns {string} Glob string to filter files against
+   */
+  filterFiles () {
+    return getFiles(this.getBaseDir(), this.props.filter, this.select('files'));
   }
 
   /**
@@ -109,16 +149,30 @@ class FilesPage extends Page {
 
     this.props.prompt.beckon(this.question)
       .then(this.processInput.bind(this))
-      .then((selections, unselections) => {
-        return this.props.menu.select(selections, unselections);
-      })
-      .then((selectedItems) => {
-        console.log(selectedItems);
+      .then((results) => {
+        let { selectedItems, queryCount } = results;
+
+        /**
+         * If the only input given is an empty response lets go back to
+         * the index.
+         */
+        if (queryCount === 1 && selectedItems[0].value === null) {
+          return this.navigate('index');
+        }
+
+        this.updateFiles(selectedItems);
+
+        /**
+         * If the only param was a single "*" add the files and navigate
+         * away to the index page
+         */
+        if (queryCount === 1 && selectedItems[0].type === "all") {
+          return this.navigate('index');
+        }
+
         reprompt();
       })
       .catch((e) => {
-        if (!e) return this.props.comlink.emit('app:navigate', 'index');
-
         if (e && e.message) {
           process.stdout.write(e.stack || e.message);
           process.stdout.write('\n');
@@ -138,11 +192,11 @@ class FilesPage extends Page {
    * @returns {promise} Returns a promise to return the result
    */
   processInput (answer) {
-    return this.props.menu.find(answer);
+    return this.state.menu.find(answer);
   }
 
   renderMenu () {
-    this.state.menu.props.options = getFiles(this.props.filepath);
+    this.state.menu.props.options = this.filterFiles();
     return this.state.menu.render();
   }
 

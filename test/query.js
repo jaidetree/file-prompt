@@ -94,6 +94,12 @@ describe('Query', () => {
 
       expect(query.isInteger()).toBe(false);
     });
+
+    it('Should return false when query is =2', () => {
+      let query = new Query('=2');
+
+      expect(query.isInteger()).toBe(false);
+    });
   });
 
   describe('#isRange()', () => {
@@ -192,7 +198,7 @@ describe('Query', () => {
       let data = new Query('-5').parse();
 
       expect(data.type).toBe('id');
-      expect(data.action).toBe('subtract');
+      expect(data.action).toBe('unselect');
       expect(data.value).toBe(5);
       expect(data.query).toBe('-5');
     });
@@ -201,7 +207,7 @@ describe('Query', () => {
       let data = new Query('-5-94').parse();
 
       expect(data.type).toBe('range');
-      expect(data.action).toBe('subtract');
+      expect(data.action).toBe('unselect');
       expect(data.query).toBe('-5-94');
       expect(data.value).toBeA('object');
       expect(data.value.min).toBe(5);

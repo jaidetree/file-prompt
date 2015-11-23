@@ -78,7 +78,7 @@
     "guard-for-in": 1, // ............................... Make sure for-in loops have an if statement
     "no-alert": 0, // ................................... Disallow the use of alert, confirm, and prompt
     "no-caller": 2, // .................................. Disallow use of arguments.caller or arguments.callee
-    "no-case-declarations": 1, // ....................... Disallow lexical declarations in case clauses
+    "no-case-declarations": 0, // ....................... Disallow lexical declarations in case clauses
     "no-div-regex": 1, // ............................... Disallow division operators explicitly at beginning of regular expression
     "no-else-return": 1, // ............................. Disallow else after a return in an if
     "no-empty-label": 1, // ............................. Disallow use of labels for anything other than loops and switches

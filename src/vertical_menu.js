@@ -1,7 +1,7 @@
 import colors from 'chalk';
 import Menu from './menu';
 
-const MAX_COLUMN_WIDTH = 10;
+const MAX_COLUMN_WIDTH = 6;
 
 /**
  * VerticalMenu
@@ -38,7 +38,7 @@ class VerticalMenu extends Menu {
         offset = MAX_COLUMN_WIDTH - plainText.length,
         spacer = ' '.repeat(offset);
 
-    return `${plainText}${spacer}`;
+    return `${text}${spacer}`;
   }
 
   /**
@@ -51,7 +51,7 @@ class VerticalMenu extends Menu {
    * @returns {string} Formatted option
    */
   renderOption (option) {
-    return `  ${option.id}: ${option.label}\n`;
+    return `  ${this.renderColumn(option.id + ':')} ${option.label}\n`;
   }
 }
 

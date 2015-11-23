@@ -67,21 +67,17 @@ class IndexPage extends Page {
     super(props);
   }
 
-  /**
-   * Get Default Props
-   * Returns the default properties for this component. Can be overridden
-   * by a subclass
-   *
-   * @method
-   * @privae
-   * @returns {object} Default IndexPage props
-   */
-  getDefaultProps () {
-    return {
-      menu: new Menu({
-        options: MENU_OPTIONS
+  getInitialState () {
+    return { 
+      prompt: new Prompt({
+        stdin: this.props.stdin,
+        stdout: this.props.stdout
       }),
-      prompt: new Prompt()
+      menu: new Menu({
+        options: MENU_OPTIONS,
+        stdin: this.props.stdin,
+        stdout: this.props.stdout
+      })
     };
   }
 
@@ -91,21 +87,19 @@ class IndexPage extends Page {
    *
    * @method
    * @public
+   * @returns {Promise} Returns a promise object chained to the prompt
    */
   prompt () {
     let reprompt = () => {
-      process.stdout.write(this.renderIntro());
-      process.stdout.write(this.renderMenu());
+      this.props.stdout.write(this.renderIntro());
+      this.props.stdout.write(this.renderMenu());
       this.prompt();
     };
 
-    this.props.prompt.beckon(this.question)
+    return this.state.prompt.beckon(this.question)
       .then(this.processInput.bind(this))
-      .then((selections) => {
-        return this.props.menu.select(selections);
-      })
-      .then((selectedItems) => {
-        let item = selectedItems[0];
+      .then((results) => {
+        let item = results.selectedItems[0];
 
         switch (item.value) {
         case 'quit':
@@ -117,14 +111,22 @@ class IndexPage extends Page {
           reprompt();
           break;
 
+        case null:
+          reprompt();
+          break;
+
         default:
-          this.props.comlink.emit('app:navigate', item.value);
+          this.navigate(item.value);
           break;
         }
+
+        return results;
       })
       .catch((e) => {
-        if (e && e.message) console.log(e.stack || e.message);
+        if (e && e.message) this.props.stdout.write((e.stack || e.message) + '\n');
         reprompt();
+
+        return e;
       });
   }
 
@@ -138,7 +140,7 @@ class IndexPage extends Page {
    * @returns {promise} Returns a promise to return the result
    */
   processInput (answer) {
-    return this.props.menu.find(answer, (queries) => queries.slice(0, 1));
+    return this.state.menu.find(answer, (queries) => queries.slice(0, 1));
   }
 
   /**
@@ -146,7 +148,7 @@ class IndexPage extends Page {
    * Closes the app and writes a goodbye message.
    */
   quit () {
-    process.stdout.write('Later skater!\n');
+    this.props.stdout.write('Later skater!\n');
     process.exit(1);
   }
 
@@ -158,7 +160,7 @@ class IndexPage extends Page {
    * @public
    */
   showHelp () {
-    process.stdout.write(colors.red.bold('HELP') + '\n');
+    this.props.stdout.write(colors.red.bold('HELP') + '\n');
   }
 
   renderIntro () {
@@ -170,7 +172,7 @@ class IndexPage extends Page {
   }
 
   renderMenu () {
-    return this.props.menu.render() + '\n';
+    return this.state.menu.render() + '\n';
   }
 }
 
