@@ -24,6 +24,7 @@
   },
   "homepage": "https://github.com/jayzawrotny/file-prompt#readme",
   "dependencies": {
+    "babel-polyfill": "^6.1.19",
     "chalk": "^1.1.1",
     "glob": "^6.0.1",
     "minimatch": "^3.0.0",
@@ -36,7 +37,6 @@
     "file-prompt-tests": "file:test",
     "babel-core": ">= 6.1.4 < 7",
     "babel-eslint": ">= ^4.1.4",
-    "babel-polyfill": "^6.1.19",
     "babel-preset-es2015": ">= 6.1.4 <= 7",
     "babel-preset-stage-0": ">= 6.1.2 < 7"
   }
