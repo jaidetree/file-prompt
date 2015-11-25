@@ -13,7 +13,7 @@
   "bugs": {
     "url": "https://github.com/jayzawrotny/file-prompt/issues"
   },
-  "license": "GPL-2.0",
+  "license": "BSD-3-Clause",
   "author": "Jay Zawrotny <jayzawrotny@gmail.com>",
   "main": "index.js",
   "repository": {
