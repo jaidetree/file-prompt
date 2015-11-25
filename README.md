@@ -44,16 +44,16 @@ fileprompt({ basedir: process.cwd(), filter: '*.js' })
 The following methods of input are currently supposed:
 
 __Main Menu__
-* _<int>_ __id__ - Number of the menu item to access
-* _<string>_ __name__ - Must uniquely identify the beginning of a menu item
+* _{int}_ __id__ - Number of the menu item to access
+* _{string}_ __name__ - Must uniquely identify the beginning of a menu item
 
 __Files__
-* _<string>_ __*__ - Adds all files from the current page
-* _<string>_ __-*__ - Removes all files from the current page
-* _<int>_ __id__ - Number of the menu item to access
-* _<string>_ __name__ - Must uniquely identify the beginning of a file name
-* _<string>_ __n-n__ - Supports numeric ranges like 1-5
-* _<string>_ __-n-n__ - Supports removing files within the given range
+* _{string}_ __*__ - Adds all files from the current page
+* _{string}_ __-*__ - Removes all files from the current page
+* _{int}_ __id__ - Number of the menu item to access
+* _{string}_ __name__ - Must uniquely identify the beginning of a file name
+* _{string}_ __n-n__ - Supports numeric ranges like 1-5
+* _{string}_ __-n-n__ - Supports removing files within the given range
 
 You can also supply multiple arguments like `4 5-10 -8` and it will do the following:
 * Selected item # 4
