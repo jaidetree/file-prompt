@@ -28,11 +28,7 @@ const DEFINED_METHODS = [
   'stopListening'
 ];
 
-let TESTFLAGS = {
-      captureFromRender: true,
-      delayRender: false
-    },
-    comlink = new EventEmitter();
+let comlink = new EventEmitter();
 
 /**
  * We are creating a test component because the component class is not intended
@@ -65,7 +61,7 @@ describe('Component', () => {
     });
 
     it('should have defined methods', () => {
-      var methods = Reflect.ownKeys(Component.prototype);
+      var methods = Object.getOwnPropertyNames(Component.prototype);
 
       expect(methods).toEqual(DEFINED_METHODS);
     });

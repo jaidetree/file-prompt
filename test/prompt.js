@@ -27,7 +27,7 @@ describe('Prompt', () => {
     });
 
     it('Should have methods', () => {
-      expect(Reflect.ownKeys(Prompt.prototype)).toEqual(DEFINED_METHODS);
+      expect(Object.getOwnPropertyNames(Prompt.prototype)).toEqual(DEFINED_METHODS);
     });
 
     it('Should have properties', () => {

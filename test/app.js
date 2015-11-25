@@ -52,7 +52,7 @@ describe('App', () => {
     });
 
     it('Should have methods defined', () => {
-      expect(Reflect.ownKeys(App.prototype)).toEqual(DEFINED_METHODS);
+      expect(Object.getOwnPropertyNames(App.prototype)).toEqual(DEFINED_METHODS);
     });
 
     it('Should render the index page by default', () => {
