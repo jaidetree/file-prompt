@@ -12,7 +12,7 @@ export default class StoreFactory {
       name: 'index',
       props: {}
     },
-    path: ''
+    filter: '**/*.js'
   };
 
   static create (data={}) {

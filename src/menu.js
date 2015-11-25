@@ -1,4 +1,5 @@
 import colors from 'chalk';
+import column from './util/column';
 import Component from './component';
 import Query from './query';
 import stripAnsi from 'strip-ansi';
@@ -330,8 +331,8 @@ class Menu extends Component {
 
   /**
    * Set Options
-   * Create options 
-   * 
+   * Update this component's options collection
+   *
    * @method
    * @public
    * @param {object} options - New options to display & filter
@@ -367,12 +368,11 @@ class Menu extends Component {
    */
   renderOption (option, i) {
     let isLastInRow = (i + 1) % ITEMS_PER_ROW === 0,
-        column = `  ${option.id}: ${this.renderLabel(option.label)}`,
-        spacer = ' ';
+        text = `  ${option.id}: ${this.renderLabel(option.label)}`;
+    
+    text = column(text, MAX_COLUMN_LENGTH);
 
-    spacer = spacer.repeat(MAX_COLUMN_LENGTH - colors.stripColor(column).length);
-
-    return `${column}${spacer}${isLastInRow ? '\n' : ''}`;
+    return `${text} ${isLastInRow ? '\n' : ''}`;
   }
 
   /**

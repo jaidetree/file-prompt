@@ -1,4 +1,5 @@
 import colors from 'chalk';
+import column from '../util/column';
 import Menu from '../menu';
 import Page from '../page';
 import path from 'path';
@@ -40,7 +41,8 @@ const MENU_OPTIONS = [{
         name: 'quit',
         value: 'quit'
       }],
-      COLUMN_LENGTH = 6;
+      MAX_LABEL_WIDTH = 6,
+      MAX_HELP_WIDTH = 11;
 
 /**
  * Index Page
@@ -122,7 +124,7 @@ class IndexPage extends Page {
 
         return results;
       })
-      .catch((e) => {
+      .catch(() => {
         reprompt();
       });
   }
@@ -157,7 +159,25 @@ class IndexPage extends Page {
    * @public
    */
   showHelp () {
-    this.props.stdout.write(colors.red.bold('HELP') + '\n');
+    let help = {
+          'directories': 'Select files & browse directories',
+          'files': 'Select from a list of all nested files',
+          'glob': 'Input a glob string then selected from matches',
+          'changed': 'Select files from git diff --name-only',
+          'help': 'Uhhh... this thing I guess...',
+          'quit': 'Forward files along'
+        },
+        text = "";
+
+
+    for (let name in help) {
+      let content = help[name];
+
+      text += `${column(name, MAX_HELP_WIDTH)} - ${content}\n`; 
+    }
+
+
+    this.props.stdout.write(colors.bold.red(text));
   }
 
   /**
@@ -171,24 +191,20 @@ class IndexPage extends Page {
   renderIntro () {
     let text = '',
         files = this.select('files'),
-        basedir = this.select('config.basedir'),
-        column = (...args) => {
-          let str = args.join(''),
-              rawText = colors.stripColor(str),
-              spacer = ' '.repeat(COLUMN_LENGTH - rawText.length);
-
-          return `${str}${spacer}`;
-        };
+        basedir = this.select('config.basedir');
 
     // Build our list of files
     if (files.length) {
       text += '\n';
 
       files.forEach((file, i) => {
-        let relative = path.relative(basedir, file);
+        let relative = path.relative(basedir, file),
+            label = `${i + 1}: `;
+
+        label = column(label, MAX_LABEL_WIDTH);
 
         // 1: src/path/to/file.js
-        text += `${column(i + 1, ':')} ${relative} \n`;
+        text += `${label} ${relative}\n`;
       });
 
       text += '\n';

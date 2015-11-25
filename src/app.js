@@ -1,5 +1,5 @@
 import Component from './component';
-import fs from 'fs'; 
+import fs from 'fs';
 import minimatch from 'minimatch';
 import path from 'path';
 import reducers from './reducers';
@@ -31,6 +31,13 @@ function readDir (dir, glob) {
   return files;
 }
 
+/**
+ * Select Current Page
+ * Selects the current page data from the store.
+ *
+ * @param {object} store - Redux data store
+ * @returns {object} currentPage object
+ */
 function selectCurrentPage (store) {
   return store.getState().currentPage;
 }
@@ -65,6 +72,7 @@ class App extends Component {
         basedir: this.props.basedir
       },
       files: [],
+      filter: this.props.filter,
       currentPage: {
         name: 'index',
         props: {}
@@ -82,7 +90,8 @@ class App extends Component {
    */
   getDefaultProps () {
     return {
-      basedir: process.cwd()
+      basedir: process.cwd(),
+      filter: '**/*.js'
     };
   }
 
