@@ -5,7 +5,9 @@ An interactive prompt for files inspired by git add -i. By supplying a filter an
 
 ## Installation
 Using [npm](https://wwww.npmjs.org):
-     $ npm install expect
+```
+$ npm install expect
+```
 
 ## Usage
 _In ES6:_
