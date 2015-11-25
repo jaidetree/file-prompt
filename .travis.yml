@@ -3,6 +3,7 @@ language: node_js
 node_js:
   - 'stable'
 install:
+  - npm install
   - cd test/ && npm install
   - cd ../gulp/ && npm install
 before_script:
