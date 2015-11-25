@@ -4,6 +4,7 @@ node_js:
   - 'stable'
 install:
   - cd test/ && npm install
-  - cd gulp/ && npm install
+  - cd ../gulp/ && npm install
+  - cd ..
   - npm install -g gulp
 script: gulp test
