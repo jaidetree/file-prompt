@@ -83,7 +83,7 @@ class ChangedPage extends Page {
    */
   createOptionsFrom (files) {
     let selectedFiles = this.select('files'),
-        basedir = this.props.basedir || this.select('config.basedir');
+        basedir = this.getBasedir();
 
     return files.map((filename, i) => {
       return {
@@ -106,7 +106,7 @@ class ChangedPage extends Page {
    * @returns {array} Array of menu options
    */
   getFiles (pattern) {
-    let basedir = this.props.basedir || this.select('config.basedir'),
+    let basedir = this.getBasedir(),
         output = execSync('git diff --name-only'),
         files = output.toString().split('\n'),
         mm = new minimatch.Minimatch(pattern);

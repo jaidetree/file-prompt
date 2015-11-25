@@ -97,7 +97,7 @@ class FilesPage extends Page {
    * @returns {array} Array of menu options
    */
   getFiles (pattern) {
-    let basedir = this.props.basedir || this.select('config.basedir'),
+    let basedir = this.getBasedir(),
         selectedFiles = this.select('files');
 
     return glob.sync(path.join(basedir, pattern), { cwd: process.cwd() })

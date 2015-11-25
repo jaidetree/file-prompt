@@ -97,7 +97,7 @@ class GlobPage extends Page {
    */
   createOptionsFrom (files) {
     let selectedFiles = this.select('files'),
-        basedir = this.props.basedir || this.select('config.basedir');
+        basedir = this.getBasedir();
 
     return files.map((filename, i) => {
       return {
@@ -118,7 +118,7 @@ class GlobPage extends Page {
    * @returns {array} Array of menu options
    */
   getFiles (pattern) {
-    let basedir = this.props.basedir || this.select('config.basedir');
+    let basedir = this.getBasedir();
 
     return glob.sync(path.join(basedir, pattern), { cwd: process.cwd() });
   }
@@ -248,7 +248,7 @@ class GlobPage extends Page {
    * @returns {string} Prompt string to ask the user
    */
   question () {
-    let basedir = this.props.basedir || this.select('config.basedir');
+    let basedir = this.getBasedir();
 
     if (this.state.files.length) {
       return 'Add files';

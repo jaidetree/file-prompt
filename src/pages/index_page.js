@@ -195,7 +195,7 @@ class IndexPage extends Page {
   renderIntro () {
     let text = '',
         files = this.select('files'),
-        basedir = this.select('config.basedir');
+        basedir = this.select('config.base');
 
     // Build our list of files
     if (files.length) {

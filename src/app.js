@@ -69,7 +69,7 @@ class App extends Component {
     super(props);
     this.store = createStore(reducers, {
       config: {
-        basedir: this.props.basedir
+        base: this.props.base
       },
       files: [],
       filter: this.props.filter,
@@ -90,7 +90,7 @@ class App extends Component {
    */
   getDefaultProps () {
     return {
-      basedir: process.cwd(),
+      base: process.cwd(),
       filter: '**/*.js',
       stdin: process.stdin,
       stdout: process.stdout

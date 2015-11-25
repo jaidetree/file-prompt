@@ -54,6 +54,18 @@ class Page extends Component {
   }
 
   /**
+   * Get Basedir
+   * Returns the basedir from props or what is in the app state's config
+   *
+   * @method
+   * @public
+   * @returns {string} Basedir path
+   */
+  getBasedir () {
+    return this.props.base || this.select('config.base');
+  }
+
+  /**
    * Navigate
    * Navigates to another page
    *

@@ -73,12 +73,11 @@ class DirectoriesPage extends Page {
    * Get Files
    * Returns an array of files to select
    *
-   * @param {string} [basedir] - Directory to look through
+   * @param {string} [dir] - Directory to look through
    * @returns {array} Array of menu options
    */
-  getFiles (basedir) {
-    let configBasedir = this.select('config.basedir'),
-        dir = basedir || configBasedir,
+  getFiles (dir) {
+    let configBasedir = this.select('config.base'),
         isBaseDir = dir === configBasedir,
         selectedFiles = this.select('files'),
         files = [];
@@ -202,7 +201,7 @@ class DirectoriesPage extends Page {
     });
 
     if (selectedDir) {
-      this.navigate('directories', { basedir: selectedDir });
+      this.navigate('directories', { base: selectedDir });
       return true;
     }
 
@@ -223,7 +222,7 @@ class DirectoriesPage extends Page {
   }
 
   renderMenu () {
-    this.state.menu.setOptions(this.getFiles(this.props.basedir));
+    this.state.menu.setOptions(this.getFiles(this.getBasedir()));
     return this.state.menu.render();
   }
 

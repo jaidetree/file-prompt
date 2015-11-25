@@ -15,7 +15,7 @@ _In ES6:_
 ```js
 import fileprompt from 'fileprompt'
 
-fileprompt({ basedir: process.cwd(), filter: '*.js' })
+fileprompt({ base: process.cwd(), filter: '*.js' })
   .then((files) => {
     // Array of absolute path files
   })
@@ -30,7 +30,7 @@ _In ES5:_
 ```js
 var fileprompt = require('fileprompt');
 
-fileprompt({ basedir: process.cwd(), filter: '*.js' })
+fileprompt({ base: process.cwd(), filter: '*.js' })
   .then((files) => {
     // Array of absolute path files
   })
@@ -39,6 +39,10 @@ fileprompt({ basedir: process.cwd(), filter: '*.js' })
   })
 
 ```
+
+### Config Properties
+* config.__base__ - Absolute path to a base directory to look for files in
+* config.__filter__ - Glob string to filter files from the basedirectory
 
 ## Input
 The following methods of input are currently supposed:
