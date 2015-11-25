@@ -75,13 +75,18 @@ Asks for a glob string such as `**/*.js`. If matches are found it will allow you
 ### Changed Files
 Executes `git diff --name-only` to get a list of files changed since the last git commit. Pressing `<enter>` will return to the main menu.
 
+
+## Credits
+This tool was lovingly made for use at [VenueBook](https://venuebook.com/).
+
+## License
+
+BSD-3-Clause (c) 2015 VenueBook, Inc. (https://venuebook.com)
+
+
 [screenshot-image]: https://github.com/jayzawrotny/file-prompt/raw/master/docs/images/screenshot.png
 [build-badge]: https://img.shields.io/travis/jayzawrotny/file-prompt/master.svg?style=flat-square
 [build]: https://travis-ci.org/jayzawrotny/file-prompt
 
 [npm-badge]: https://img.shields.io/npm/v/file-prompt.svg?style=flat-square
 [npm]: https://www.npmjs.org/package/file-prompt
-
-
-## Credits
-This tool was lovingly made for use at [VenueBook](https://venuebook.com/).
