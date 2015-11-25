@@ -49,7 +49,7 @@ function build (stream) {
  * Runs a watcher on all src js files and builds them when changed.
  */
 gulp.task('watch-build', () => {
-  return watch(project.paths.js.src, (file) => {
+  return watch(['!src/test.js', project.paths.js.src], (file) => {
     return build(gulp.src(file.path));
   });
 });
@@ -60,9 +60,9 @@ gulp.task('watch-build', () => {
  */
 gulp.task('build', () => {
   var opts = minimist(process.argv.slice(2)),
-      file = opts.file || opts.f || project.paths.js.src;
+      file = opts.file || opts.f || ['!../src/test.js', project.paths.js.src];
 
-  if (file !== project.paths.js.src) {
+  if (opts.file || opts.f) {
     file = project.resolve(file);
   }
 

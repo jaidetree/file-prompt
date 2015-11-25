@@ -335,7 +335,7 @@ class Menu extends Component {
    * @returns {array} A range of values from min to max
    */
   range (min, max) {
-    return Array.apply(null, Array(max - min))
+    return Array.apply(null, Array(max + 1 - min))
       .map((value, i) => i + min)
       .filter(this.hasOption, this);
   }
