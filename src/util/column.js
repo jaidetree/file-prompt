@@ -14,4 +14,4 @@ export default function column (text, maxLength) {
       spacer = diff > 0 ? ' '.repeat(diff) : '';
 
   return `${text}${spacer}`;
-};
+}

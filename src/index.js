@@ -1,13 +1,25 @@
 import App from './app';
-import IndexPage from './pages/index_page';
-import path from 'path';
 
-App.PAGES.index = IndexPage;
+/**
+ * File Prompt
+ * Props for files with the given options
+ *
+ * @param {object} options - Initial options
+ * @param {string} options.basedir - Base directory to search in
+ * @param {string} options.filter - Glob filter for files and git diff files
+ * @returns {Promise} A promise when files have been selected or rejected on
+ *                    error.
+ */
+export default function fileprompt (options={}) {
+  let app = new App(Object.assign({
+    basedir: __dirname
+  }, options));
 
-let app = new App({
-  basedir: path.join(process.cwd(), 'src')
-});
+  app.props.stdout.write('\n');
+  App.mount(app);
 
-process.stdout.write('\n');
-App.mount(app);
-// app.renderComponent();
+  return new Promise((resolve, reject) => {
+    app.once('complete', resolve);
+    app.once('error', reject);
+  });
+}

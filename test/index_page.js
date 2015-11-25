@@ -43,8 +43,7 @@ describe('Index Page', () => {
 
   describe('#render()', () => {
     it('Should render the intro, menu, and prompt', () => {
-      let ceptor = new StdoutInterceptor(),
-          store = StoreFactory.create(),
+      let store = StoreFactory.create(),
           page = new IndexPage({
             stdin: new MockStdin(['Test string']),
             stdout,
@@ -52,13 +51,11 @@ describe('Index Page', () => {
           }),
           output;
 
-      ceptor.capture();
       IndexPage.mount(page);
-      ceptor.release();
 
-      output = ceptor.toString();
+      output = stdout.toString();
 
-      expect(output.toString()).toBe('\x1b[37m\x1b[1m*** COMMANDS ***\x1b[22m\x1b[39m\n  1: \x1b[35m\x1b[1md\x1b[22m\x1b[39mirectories      2: \x1b[35m\x1b[1mf\x1b[22m\x1b[39miles            3: \x1b[35m\x1b[1mg\x1b[22m\x1b[39mlob             4: \x1b[35m\x1b[1mc\x1b[22m\x1b[39mhanged        \n  5: \x1b[35m\x1b[1mh\x1b[22m\x1b[39melp             6: \x1b[35m\x1b[1mq\x1b[22m\x1b[39muit           \n');
+      expect(output).toBe('\x1b[37m\x1b[1m*** COMMANDS ***\x1b[22m\x1b[39m\n  1: \x1b[35m\x1b[1md\x1b[22m\x1b[39mirectories       2: \x1b[35m\x1b[1mf\x1b[22m\x1b[39miles             3: \x1b[35m\x1b[1mg\x1b[22m\x1b[39mlob              4: \x1b[35m\x1b[1mc\x1b[22m\x1b[39mhanged         \n  5: \x1b[35m\x1b[1mh\x1b[22m\x1b[39melp              6: \x1b[35m\x1b[1mq\x1b[22m\x1b[39muit            \n\x1b[34m\x1b[1mWhat do you seek?\x1b[22m\x1b[39m\x1b[35m\x1b[1m > \x1b[22m\x1b[39m');
     });
   });
 
@@ -96,7 +93,7 @@ describe('Index Page', () => {
       page.prompt()
         .catch((e) => {
           expect(e).toExist();
-          expect(stdout.toString()).toBe('\x1b[34m\x1b[1mWhat do you seek?\x1b[22m\x1b[39m\x1b[35m\x1b[1m > \x1b[22m\x1b[39m\x1b[31m\x1b[1mHuh (-1)? \n\x1b[22m\x1b[39m\x1b[37m\x1b[1m*** COMMANDS ***\x1b[22m\x1b[39m\n  1: \x1b[35m\x1b[1md\x1b[22m\x1b[39mirectories      2: \x1b[35m\x1b[1mf\x1b[22m\x1b[39miles            3: \x1b[35m\x1b[1mg\x1b[22m\x1b[39mlob             4: \x1b[35m\x1b[1mc\x1b[22m\x1b[39mhanged        \n  5: \x1b[35m\x1b[1mh\x1b[22m\x1b[39melp             6: \x1b[35m\x1b[1mq\x1b[22m\x1b[39muit           \n\x1b[34m\x1b[1mWhat do you seek?\x1b[22m\x1b[39m\x1b[35m\x1b[1m > \x1b[22m\x1b[39m');
+          expect(stdout.toString()).toBe('\x1b[34m\x1b[1mWhat do you seek?\x1b[22m\x1b[39m\x1b[35m\x1b[1m > \x1b[22m\x1b[39m\x1b[31m\x1b[1mHuh (-1)?\n\x1b[22m\x1b[39m\x1b[37m\x1b[1m*** COMMANDS ***\x1b[22m\x1b[39m\n  1: \x1b[35m\x1b[1md\x1b[22m\x1b[39mirectories       2: \x1b[35m\x1b[1mf\x1b[22m\x1b[39miles             3: \x1b[35m\x1b[1mg\x1b[22m\x1b[39mlob              4: \x1b[35m\x1b[1mc\x1b[22m\x1b[39mhanged         \n  5: \x1b[35m\x1b[1mh\x1b[22m\x1b[39melp              6: \x1b[35m\x1b[1mq\x1b[22m\x1b[39muit            \n\x1b[34m\x1b[1mWhat do you seek?\x1b[22m\x1b[39m\x1b[35m\x1b[1m > \x1b[22m\x1b[39m');
           stdin.pause();
         })
         .then(done, done);
@@ -182,7 +179,6 @@ describe('Index Page', () => {
           expect(results).toExist();
           expect(results.selectedItems).toBeA(Array);
           expect(results.selectedItems[0].value).toBe('quit');
-          expect(stdout.toString()).toInclude('Done.');
           expect(spy).toHaveBeenCalled();
         })
         .then(done, done);

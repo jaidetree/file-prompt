@@ -78,7 +78,8 @@ class IndexPage extends Page {
       menu: new Menu({
         options: MENU_OPTIONS,
         stdin: this.props.stdin,
-        stdout: this.props.stdout
+        stdout: this.props.stdout,
+        app: this.props.app
       })
     };
   }
@@ -124,8 +125,9 @@ class IndexPage extends Page {
 
         return results;
       })
-      .catch(() => {
+      .catch((e) => {
         reprompt();
+        throw e;
       });
   }
 
@@ -147,7 +149,9 @@ class IndexPage extends Page {
    * Closes the app and writes a goodbye message.
    */
   quit () {
-    this.props.stdout.write('Done.\n');
+    if (this.props.app) {
+      this.props.app.emit('complete', this.select('files'));
+    }
     this.props.stdin.pause();
   }
 
@@ -160,22 +164,22 @@ class IndexPage extends Page {
    */
   showHelp () {
     let help = {
-          'directories': 'Select files & browse directories',
-          'files': 'Select from a list of all nested files',
-          'glob': 'Input a glob string then selected from matches',
-          'changed': 'Select files from git diff --name-only',
-          'help': 'Uhhh... this thing I guess...',
-          'quit': 'Forward files along'
+          directories: 'Select files & browse directories',
+          files: 'Select from a list of all nested files',
+          glob: 'Input a glob string then selected from matches',
+          changed: 'Select files from git diff --name-only',
+          help: 'Uhhh... this thing I guess...',
+          quit: 'Forward files along'
         },
-        text = "";
-
+        text = 'HELP\n';
 
     for (let name in help) {
-      let content = help[name];
+      if (help.hasOwnProperty(name)) {
+        let content = help[name];
 
-      text += `${column(name, MAX_HELP_WIDTH)} - ${content}\n`; 
+        text += `${column(name, MAX_HELP_WIDTH)} - ${content}\n`;
+      }
     }
-
 
     this.props.stdout.write(colors.bold.red(text));
   }

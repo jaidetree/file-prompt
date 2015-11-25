@@ -8,6 +8,7 @@
 */
 import gulp from 'gulp';
 import log from 'gutil-waterlog';
+import minimist from 'minimist';
 import mocha from 'gulp-mocha';
 import plumber from 'gulp-plumber';
 import watch from 'gulp-watch';
@@ -28,9 +29,11 @@ paths.watch = [
  * @returns {stream} Resulting transform stream
  */
 function test () {
+  let args = minimist(process.argv.slice(2));
+
   return gulp.src(paths.src, { read: false })
     .pipe(plumber())
-    .pipe(mocha({}));
+    .pipe(mocha(args));
 }
 
 gulp.task('test:mocha', () => {

@@ -1,3 +1,4 @@
+import colors from 'chalk';
 import glob from 'glob';
 import VerticalMenu from '../vertical_menu';
 import Page from '../page';
@@ -45,25 +46,6 @@ class GlobPage extends Page {
   /** LIFECYCLE METHODS */
 
   /**
-   * Get Default Props
-   * Returns the default properties for this component. Can be overridden
-   * by a subclass
-   *
-   * @method
-   * @privae
-   * @returns {object} Default GlobPage props
-   */
-  getDefaultProps () {
-    let data = super.getDefaultProps();
-
-    Object.assign(data, {
-      prompt: new Prompt()
-    });
-
-    return data;
-  }
-
-  /**
    * Get Initial State
    * Initializes this component's state
    *
@@ -77,7 +59,14 @@ class GlobPage extends Page {
       filter: null,
       menu: new VerticalMenu({
         canUnselect: true,
-        acceptsMany: true
+        acceptsMany: true,
+        stdin: this.props.stdin,
+        stdout: this.props.stdout,
+        app: this.props.app
+      }),
+      prompt: new Prompt({
+        stdin: this.props.stdin,
+        stdout: this.props.stdout
       })
     };
   }
@@ -164,7 +153,7 @@ class GlobPage extends Page {
    */
   prompt () {
     let reprompt = () => {
-      process.stdout.write(this.renderMenu());
+      this.props.stdout.write(this.renderMenu());
       this.prompt();
     };
 
@@ -172,7 +161,7 @@ class GlobPage extends Page {
      * If files have been found from the glob, lets
      */
     if (this.state.files.length) {
-      this.props.prompt.beckon(this.question())
+      this.state.prompt.beckon(this.question())
         .then(this.processInput.bind(this))
         .then((results) => {
           let { selectedItems, queryCount } = results;
@@ -197,17 +186,12 @@ class GlobPage extends Page {
 
           reprompt();
         })
-        .catch((e) => {
-          if (e && e.message) {
-            process.stdout.write(e.stack || e.message);
-            process.stdout.write('\n');
-          }
-
+        .catch(() => {
           reprompt();
         });
     }
     else {
-      this.props.prompt.beckon(this.question())
+      this.state.prompt.beckon(this.question())
         .then((answer) => {
           let files = [];
 
@@ -221,7 +205,7 @@ class GlobPage extends Page {
 
           files = this.getFiles(answer);
 
-          if (!files.length) throw new Error('No files found. Try again.\n');
+          if (!files.length) throw new Error('no_glob_match');
 
           this.setState({
             filter: answer,
@@ -230,7 +214,12 @@ class GlobPage extends Page {
 
           reprompt();
         })
-        .catch(() => {
+        .catch((e) => {
+          switch (e.message) {
+          case 'no_glob_match':
+            this.props.stdout.write(colors.bold.red('No files found. Try again.\n'));
+            break;
+          }
           reprompt();
         });
     }

@@ -70,14 +70,14 @@ class Prompt {
         let chunk = this.options.stdin.read();
 
         if (chunk !== null) {
-          this.options.stdin.removeListener('readable', readable);
+          this.options.stdin.removeAllListeners('readable');
           resolve(chunk.toString().trim());
         }
       };
 
       // Try asking a question with the readline interface
       try {
-        this.options.stdin.removeListener('readable', readable);
+        this.options.stdin.removeAllListeners('readable');
         this.options.stdin.on('readable', readable);
       }
       catch (e) {

@@ -91,7 +91,9 @@ class App extends Component {
   getDefaultProps () {
     return {
       basedir: process.cwd(),
-      filter: '**/*.js'
+      filter: '**/*.js',
+      stdin: process.stdin,
+      stdout: process.stdout
     };
   }
 
@@ -99,18 +101,26 @@ class App extends Component {
     return {
       pageName: null,
       pageProps: null
-    } 
+    };
   }
 
   /**
    * Component Will Mount
-   * Mounts the component 
+   * Mounts the component
    *
    * @method
    * @private
    */
   componentWillMount () {
     let currentPage = selectCurrentPage(this.store);
+
+    this.once('complete', () => {
+      this.componentWillUnmount();
+    }, this);
+
+    this.once('error', () => {
+      this.componentWillUnmount();
+    }, this);
 
     this.setState({
       pageName: currentPage.name,
@@ -141,7 +151,15 @@ class App extends Component {
     });
   }
 
+  /**
+   * Component Will Unmount
+   * Component will be removed from display
+   *
+   * @method
+   * @public
+   */
   componentWillUnmount () {
+    this.off();
     this.unsubscribe();
   }
 
@@ -155,7 +173,10 @@ class App extends Component {
    */
   renderPage () {
     let props = {
-      store: this.store
+      app: this,
+      store: this.store,
+      stdin: this.props.stdin,
+      stdout: this.props.stdout
     };
 
     if (!App.PAGES.hasOwnProperty(this.state.pageName)) {

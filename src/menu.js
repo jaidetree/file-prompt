@@ -102,7 +102,7 @@ class Menu extends Component {
       queries = Query.createFrom(searchFor);
 
       if (queries.length > 1 && !this.props.acceptsMany) {
-        reject('no_match');
+        reject(new Error('no_match'));
       }
 
       // Run those queries through a processor
@@ -122,13 +122,15 @@ class Menu extends Component {
       resolve({ selectedItems: selections, queryCount: queries.length });
     })
     .catch((e) => {
-      switch (e.message) {
+      switch (e.message || e) {
       case 'no_match':
         this.props.stdout.write(this.formatError(searchFor));
         break;
 
       default:
-        process.stderr.write((e.stack || e.message) +'\n');
+        this.props.app.emit('error', e);
+        this.props.stdin.pause();
+        this.props.stdout.write('\n' + (e.stack || e.message) + '\n');
         break;
       }
 
@@ -226,6 +228,15 @@ class Menu extends Component {
     return this.state.options;
   }
 
+  /**
+   * Process Queries
+   * Processes all the queries to build them into selections
+   *
+   * @method
+   * @public
+   * @param {array} queries - An array of Query class instances
+   * @returns {array} Array of selections & unselections to make.
+   */
   processQueries (queries) {
     let selections = [],
         hasErrors = false;
@@ -369,7 +380,7 @@ class Menu extends Component {
   renderOption (option, i) {
     let isLastInRow = (i + 1) % ITEMS_PER_ROW === 0,
         text = `  ${option.id}: ${this.renderLabel(option.label)}`;
-    
+
     text = column(text, MAX_COLUMN_LENGTH);
 
     return `${text} ${isLastInRow ? '\n' : ''}`;

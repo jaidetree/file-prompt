@@ -1,8 +1,9 @@
-import { Writable } from 'stream';
+import { Socket } from 'net';
 
-class MockStdout extends Writable {
+class MockStdout extends Socket {
   output = "";
   isTTY = true;
+  writeable = true;
 
   constructor (...args) {
     super(...args);

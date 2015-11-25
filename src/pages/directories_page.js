@@ -46,25 +46,6 @@ class DirectoriesPage extends Page {
   }
 
   /**
-   * Get Default Props
-   * Returns the default properties for this component. Can be overridden
-   * by a subclass
-   *
-   * @method
-   * @privae
-   * @returns {object} Default DirectoriesPage props
-   */
-  getDefaultProps () {
-    let data = super.getDefaultProps();
-
-    Object.assign(data, {
-      prompt: new Prompt()
-    });
-
-    return data;
-  }
-
-  /**
    * Get Initial State
    * Initializes this component's state
    *
@@ -76,7 +57,14 @@ class DirectoriesPage extends Page {
     return {
       menu: new VerticalMenu({
         canUnselect: true,
-        acceptsMany: true
+        acceptsMany: true,
+        stdin: this.props.stdin,
+        stdout: this.props.stdout,
+        app: this.props.app
+      }),
+      prompt: new Prompt({
+        stdin: this.props.stdin,
+        stdout: this.props.stdout
       })
     };
   }
@@ -158,11 +146,11 @@ class DirectoriesPage extends Page {
    */
   prompt () {
     let reprompt = () => {
-      process.stdout.write(this.renderMenu());
+      this.props.stdout.write(this.renderMenu());
       this.prompt();
     };
 
-    this.props.prompt.beckon(this.question)
+    this.state.prompt.beckon(this.question)
       .then(this.processInput.bind(this))
       .then((results) => {
         let { selectedItems, queryCount } = results;

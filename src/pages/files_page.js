@@ -57,8 +57,7 @@ class FilesPage extends Page {
     let data = super.getDefaultProps();
 
     Object.assign(data, {
-      filter: '**/*.js',
-      prompt: new Prompt()
+      filter: '**/*.js'
     });
 
     return data;
@@ -76,7 +75,14 @@ class FilesPage extends Page {
     return {
       menu: new VerticalMenu({
         canUnselect: true,
-        acceptsMany: true
+        acceptsMany: true,
+        stdin: this.props.stdin,
+        stdout: this.props.stdout,
+        app: this.props.app
+      }),
+      prompt: new Prompt({
+        stdin: this.props.stdin,
+        stdout: this.props.stdout
       })
     };
   }
@@ -138,11 +144,11 @@ class FilesPage extends Page {
    */
   prompt () {
     let reprompt = () => {
-      process.stdout.write(this.renderMenu());
+      this.props.stdout.write(this.renderMenu());
       this.prompt();
     };
 
-    this.props.prompt.beckon(this.question)
+    this.state.prompt.beckon(this.question)
       .then(this.processInput.bind(this))
       .then((results) => {
         let { selectedItems, queryCount } = results;
@@ -167,7 +173,7 @@ class FilesPage extends Page {
 
         reprompt();
       })
-      .catch((e) => {
+      .catch(() => {
         reprompt();
       });
   }

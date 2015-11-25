@@ -1,6 +1,15 @@
+/* eslint camelcase: 0 */
 import { combineReducers } from 'redux';
 import { ADD_FILE, REMOVE_FILE, NAVIGATE, NAVIGATE_COMPLETE, SET_CONFIG, SET_FILTER } from './actions';
 
+/**
+ * Config
+ * Reducer for the config.property
+ *
+ * @param {object} state - Config property of the state object
+ * @param {object} action - Action being performed on the config object
+ * @returns {object} New config object to store in state
+ */
 function config (state = {}, action) {
   switch (action.type) {
   case SET_CONFIG:
@@ -11,6 +20,16 @@ function config (state = {}, action) {
   }
 }
 
+/**
+ * Current Page
+ * Updates info about the current page being displayed
+ *
+ * @param {object} state - Current page obj including the name, props, and if
+ *                         we are navigating.
+ * @param {object} action - Container of the action taking place & related
+ *                          data to update the state with
+ * @returns {object} Updated current page info
+ */
 function currentPage (state = { name: 'index', props: {}, is_navigating: false }, action) {
   switch (action.type) {
   case NAVIGATE:
@@ -24,6 +43,14 @@ function currentPage (state = { name: 'index', props: {}, is_navigating: false }
   }
 }
 
+/**
+ * Files
+ * Adds or removes files from the global file store
+ *
+ * @param {array} state - List of absolute paths
+ * @param {object} action - Data and info about what action to take
+ * @returns {array} New list of files
+ */
 function files (state = [], action) {
   let newState = state.slice();
 
@@ -44,12 +71,20 @@ function files (state = [], action) {
   }
 }
 
+/**
+ * Filter
+ * Updates the current filter for finding a specific type of file
+ *
+ * @param {string} state - The filter to be used
+ * @param {object} action - Which action to apply to the filter
+ * @returns {string} New filter
+ */
 function filter (state = '**/*.js', action) {
   switch (action.type) {
   case SET_FILTER:
     return action.filter;
 
-  default: 
+  default:
     return state;
   }
 }

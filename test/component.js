@@ -18,6 +18,7 @@ const DEFINED_METHODS = [
   'listenToOnce',
   'off',
   'on',
+  'once',
   'remove',
   'render',
   'renderComponent',

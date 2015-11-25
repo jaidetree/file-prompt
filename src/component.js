@@ -34,9 +34,12 @@ function createListener (obj, event, callback, context) {
  * only one place that needs to be changed.
  *
  * @param {string} content - Content to display
+ * @param {Component} component - The component to read the stdout props from
  */
-function write (content) {
-  process.stdout.write(content);
+function write (content, component) {
+  let writer = component.props.stdout || process.stdout;
+
+  writer.write(content);
 }
 
 /**
@@ -44,12 +47,13 @@ function write (content) {
  * Iterates through the array to figure out what to display to the screen.
  *
  * @param {array} content - Array of content to iterate through
+ * @param {Component} component - Component to read the stdout writer from
  */
-function writeArray (content) {
+function writeArray (content, component) {
   for (let element of content) {
     switch (typeof element) {
     case 'string':
-      write(element);
+      write(element, component);
       break;
 
     case 'function':
@@ -82,10 +86,10 @@ class Component extends EventEmitter {
     let content = component._content;
 
     if (Array.isArray(content)) {
-      writeArray(content);
+      writeArray(content, component);
     }
     else {
-      write(content);
+      write(content, component);
     }
   }
 
@@ -309,6 +313,24 @@ class Component extends EventEmitter {
 
     this._listeners.push(listener);
     return super.on(event, listener.handler);
+  }
+
+  /**
+   * Once
+   * Small ovveride to track the listeners this component has going on
+   *
+   * @method
+   * @public
+   * @param {string} event - Name of the event to listen to
+   * @param {function} callback - Event handler
+   * @param {context} [context] - Optional context to call handler with
+   * @returns {*} Result of listener being added
+   */
+  once (event, callback, context=this) {
+    let listener = createListener(this, event, callback, context);
+
+    this._listeners.push(listener);
+    return super.once(event, listener.handler);
   }
 
   /**
