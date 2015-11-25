@@ -24,7 +24,6 @@
   },
   "homepage": "https://github.com/jayzawrotny/file-prompt#readme",
   "dependencies": {
-    "babel-polyfill": "^6.1.19",
     "chalk": "^1.1.1",
     "glob": "^6.0.1",
     "minimatch": "^3.0.0",

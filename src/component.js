@@ -236,7 +236,7 @@ class Component extends EventEmitter {
 
     /** Call the callback supplying this context */
     if (typeof callback === 'function') {
-      Reflect.apply(callback, this);
+      callback.call(this);
     }
   }
 
@@ -411,7 +411,7 @@ class Component extends EventEmitter {
 
     /** Call the callback supplying this context */
     if (typeof callback === 'function') {
-      Reflect.apply(callback, this);
+      callback.call(this);
     }
   }
 
