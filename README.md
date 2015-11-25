@@ -1,6 +1,8 @@
 # File Prompt [![Travis][build-badge]][build] [![npm package][npm-badge]][npm]
 An interactive prompt for files inspired by git add -i. By supplying a filter and a base directory and calling the `fileprompt` function you can interactively select from a list of matching files in a number of ways intended to speed up typing time trying to guess and remember paths. This tool can be used with Gulp to send a list of files to `gulp.src`.
 
+![Screencast of file prompt in action][screenshot-image]
+
 ## Installation
 Using [npm](https://wwww.npmjs.org):
      $ npm install expect
@@ -71,6 +73,7 @@ Asks for a glob string such as `**/*.js`. If matches are found it will allow you
 ### Changed Files
 Executes `git diff --name-only` to get a list of files changed since the last git commit. Pressing `<enter>` will return to the main menu.
 
+[screenshot-image]: https://github.com/jayzawrotny/file-prompt/raw/master/docs/images/screenshot.png
 [build-badge]: https://img.shields.io/travis/jayzawrotny/file-prompt/master.svg?style=flat-square
 [build]: https://travis-ci.org/jayzawrotny/file-prompt)
 
