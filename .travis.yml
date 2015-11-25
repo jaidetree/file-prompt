@@ -2,7 +2,6 @@ sudo: false
 language: node_js
 node_js:
   - 'stable'
-  - 'latest'
 before_script:
   - cd gulp/ && npm install
   - npm install -g gulp
