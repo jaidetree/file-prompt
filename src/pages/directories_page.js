@@ -1,4 +1,5 @@
-import glob from 'glob';
+import colors from 'chalk';
+import fs from 'fs';
 import VerticalMenu from '../vertical_menu';
 import Page from '../page';
 import path from 'path';
@@ -21,17 +22,17 @@ import { addFile, removeFile } from '../actions';
  */
 
 /**
- * Files Page
+ * Directory Page
  * The files menu page of our CLI app
  *
- * @class FilesPage
+ * @class DirectoriesPage
  * @extends {Page}
  * @property {string} intro - Introduction text
  * @property {string} question - Prompt question
  */
-class FilesPage extends Page {
+class DirectoriesPage extends Page {
 
-  question = 'Add files';
+  question = 'Add files or enter directory';
 
   /**
    * Constructor
@@ -51,13 +52,12 @@ class FilesPage extends Page {
    *
    * @method
    * @privae
-   * @returns {object} Default FilesPage props
+   * @returns {object} Default DirectoriesPage props
    */
   getDefaultProps () {
     let data = super.getDefaultProps();
 
     Object.assign(data, {
-      filter: '**/*.js',
       prompt: new Prompt()
     });
 
@@ -85,27 +85,47 @@ class FilesPage extends Page {
    * Get Files
    * Returns an array of files to select
    *
-   * @method
-   * @public
-   * @param {string} pattern - Glob pattern to filter against
+   * @param {string} [basedir] - Directory to look through
    * @returns {array} Array of menu options
    */
-  getFiles (pattern) {
-    let basedir = this.props.basedir || this.select('config.basedir'),
-        selectedFiles = this.select('files');
+  getFiles (basedir) {
+    let configBasedir = this.select('config.basedir'),
+        dir = basedir || configBasedir,
+        isBaseDir = dir === configBasedir,
+        selectedFiles = this.select('files'),
+        files = [];
 
-    return glob.sync(path.join(basedir, pattern), { cwd: process.cwd() })
-      .map((filename, i) => {
-        let label = path.relative(basedir, filename);
+    files = fs.readdirSync(dir);
 
-        return {
-          id: i + 1,
-          name: label,
-          value: filename,
-          isSelected: selectedFiles.indexOf(filename) > -1,
-          label
-        };
-      }) || [];
+    files = files.map((file, i) => {
+      let filepath = path.join(dir, file),
+          label = path.relative(dir, filepath),
+          stats = fs.statSync(filepath),
+          isDirectory = stats.isDirectory();
+
+      if (isDirectory) {
+        label = label + '/';
+      }
+
+      return {
+        id: isBaseDir ? i + 1 : i + 2,
+        name: label,
+        value: filepath,
+        isSelected: selectedFiles.indexOf(filepath) > -1,
+        label: isDirectory ? colors.bold(label) : label
+      };
+    });
+
+    if (dir !== configBasedir) {
+      files.unshift({
+        id: 1,
+        name: path.basename(path.resolve(dir, '..')),
+        value: path.resolve(dir, '..'),
+        label: colors.bold('..')
+      });
+    }
+
+    return files;
   }
 
   /**
@@ -155,14 +175,9 @@ class FilesPage extends Page {
           return this.navigate('index');
         }
 
-        this.updateFiles(selectedItems);
-
-        /**
-         * If the only param was a single "*" add the files and navigate
-         * away to the index page
-         */
-        if (queryCount === 1 && selectedItems[0].type === "all") {
-          return this.navigate('index');
+        // Returns true if navigating, if so don't reprompt :D
+        if (this.processFiles(selectedItems)) {
+          return results;
         }
 
         reprompt();
@@ -170,6 +185,40 @@ class FilesPage extends Page {
       .catch((e) => {
         reprompt();
       });
+  }
+
+  /**
+   * Process Files
+   *
+   * @method
+   * @public
+   * @param {array} selections - Selected files & folders
+   * @returns {boolean} If we are navigating or not
+   */
+  processFiles (selections) {
+    let selectedFiles = [],
+        selectedDir = null;
+
+    selections.forEach((selection) => {
+      let filepath = selection.value,
+          stats = fs.statSync(filepath);
+
+      if (stats.isDirectory() && !selectedDir && selection.type !== 'all') {
+        selectedDir = filepath;
+      }
+      else if (!stats.isDirectory()) {
+        selectedFiles.push(selection);
+      }
+
+      this.updateFiles(selectedFiles);
+    });
+
+    if (selectedDir) {
+      this.navigate('directories', { basedir: selectedDir });
+      return true;
+    }
+
+    return false;
   }
 
   /**
@@ -186,7 +235,7 @@ class FilesPage extends Page {
   }
 
   renderMenu () {
-    this.state.menu.setOptions(this.getFiles(this.props.filter));
+    this.state.menu.setOptions(this.getFiles(this.props.basedir));
     return this.state.menu.render();
   }
 
@@ -195,4 +244,4 @@ class FilesPage extends Page {
   }
 }
 
-export default FilesPage;
+export default DirectoriesPage;

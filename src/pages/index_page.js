@@ -1,10 +1,10 @@
 import colors from 'chalk';
 import Menu from '../menu';
 import Page from '../page';
+import path from 'path';
 import Prompt from '../prompt';
 
-const MENU_OPTIONS = [
-      {
+const MENU_OPTIONS = [{
         id: 1,
         label: 'directories',
         name: 'directories',
@@ -39,8 +39,8 @@ const MENU_OPTIONS = [
         label: 'quit',
         name: 'quit',
         value: 'quit'
-      }
-];
+      }],
+      COLUMN_LENGTH = 6;
 
 /**
  * Index Page
@@ -68,7 +68,7 @@ class IndexPage extends Page {
   }
 
   getInitialState () {
-    return { 
+    return {
       prompt: new Prompt({
         stdin: this.props.stdin,
         stdout: this.props.stdout
@@ -123,10 +123,7 @@ class IndexPage extends Page {
         return results;
       })
       .catch((e) => {
-        if (e && e.message) this.props.stdout.write((e.stack || e.message) + '\n');
         reprompt();
-
-        return e;
       });
   }
 
@@ -148,8 +145,8 @@ class IndexPage extends Page {
    * Closes the app and writes a goodbye message.
    */
   quit () {
-    this.props.stdout.write('Later skater!\n');
-    process.exit(1);
+    this.props.stdout.write('Done.\n');
+    this.props.stdin.pause();
   }
 
   /**
@@ -163,8 +160,43 @@ class IndexPage extends Page {
     this.props.stdout.write(colors.red.bold('HELP') + '\n');
   }
 
+  /**
+   * Render Intro
+   * Displays the list of files if any are selected
+   *
+   * @method
+   * @public
+   * @returns {string} Intro text to display
+   */
   renderIntro () {
-    return colors.white.bold(this.intro) + '\n';
+    let text = '',
+        files = this.select('files'),
+        basedir = this.select('config.basedir'),
+        column = (...args) => {
+          let str = args.join(''),
+              rawText = colors.stripColor(str),
+              spacer = ' '.repeat(COLUMN_LENGTH - rawText.length);
+
+          return `${str}${spacer}`;
+        };
+
+    // Build our list of files
+    if (files.length) {
+      text += '\n';
+
+      files.forEach((file, i) => {
+        let relative = path.relative(basedir, file);
+
+        // 1: src/path/to/file.js
+        text += `${column(i + 1, ':')} ${relative} \n`;
+      });
+
+      text += '\n';
+    }
+
+    text += colors.white.bold(this.intro) + '\n';
+
+    return text;
   }
 
   renderPrompt () {

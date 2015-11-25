@@ -1,6 +1,7 @@
 export const ADD_FILE = "ADD_FILE",
       REMOVE_FILE = "REMOVE_FILE",
       NAVIGATE = "NAVIGATE",
+      NAVIGATE_COMPLETE = "NAVIGATE_COMPLETE",
       SET_CONFIG = "SET_CONFIG";
 
 export function addFile (file) {
@@ -13,6 +14,10 @@ export function removeFile (file) {
 
 export function navigate (name, props = {}) {
   return { type: NAVIGATE, name, props };
+}
+
+export function navigateComplete () {
+  return { type: NAVIGATE_COMPLETE };
 }
 
 export function setConfig (options) {

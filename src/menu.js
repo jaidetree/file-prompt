@@ -1,6 +1,7 @@
 import colors from 'chalk';
 import Component from './component';
 import Query from './query';
+import stripAnsi from 'strip-ansi';
 
 const ITEMS_PER_ROW = 4,
       MAX_COLUMN_LENGTH = 20;
@@ -44,25 +45,13 @@ class Menu extends Component {
     };
   }
 
-  /** HELPER METHODS */
-
-  /**
-   * Error
-   * Tell the user the input was bad. If a reject method is available it
-   * sends an error message otherwise console.log.
-   *
-   * @param {string} searchFor - Original search param
-   * @param {function} [reject] - Optional reject callback if in promise
-   */
-  error (searchFor, reject) {
-    let msg = colors.red.bold(`Huh (${searchFor})? \n`);
-
-    this.props.stdout.write(msg);
-
-    if (reject) {
-      reject(searchFor);
-    }
+  getInitialState () {
+    return {
+      options: this.props.options || []
+    };
   }
+
+  /** HELPER METHODS */
 
   /**
    * Each
@@ -93,9 +82,8 @@ class Menu extends Component {
   find (searchFor, processor) {
     // Return a promise containing the selected ids or reject if invalid
     return new Promise((resolve, reject) => {
-      let selections = [],
-          hasErrors = false,
-          queries;
+      let queries = [],
+          selections = [];
 
       if (searchFor.trim() === "") {
         return resolve({ selectedItems: [{
@@ -106,106 +94,44 @@ class Menu extends Component {
 
       // If the searchFor pattern is invalid then reject
       if (!Query.isValid(searchFor)) {
-        hasErrors = true;
         return this.error(searchFor, reject);
       }
 
       // Create the queries from the search for pattern.
       queries = Query.createFrom(searchFor);
 
+      if (queries.length > 1 && !this.props.acceptsMany) {
+        reject('no_match');
+      }
+
       // Run those queries through a processor
       if (processor && typeof processor === 'function') {
         queries = processor(queries) || [];
       }
 
-      // For Each
-      queries.forEach((query) => {
-        let { type, action, value } = query.data,
-            data;
-
-        if (action === 'unselect' && !this.props.canUnselect) {
-          hasErrors = true;
-          return this.error(query.toString());
-        }
-
-        // Go by type of action
-        switch (type) {
-
-        case 'all':
-          if (!this.props.acceptsMany) {
-            hasErrors = true;
-            return this.error(searchFor);
-          }
-
-          data = this.options().map((opt) => opt.id);
-          break;
-
-        /**
-         * If it's a range generate a range of ids which get filtered by if
-         * an option has that id or not.
-         */
-        case 'range':
-          data = this.range(value.min, value.max);
-          break;
-
-        /**
-         * If it is just an id then make sure an option by that id exists
-         * and if so return an array that contains that id otherwise an
-         * empty array to be used later
-         */
-        case 'id':
-          if (this.hasOption(value)) {
-            data = [value];
-          }
-          else {
-            hasErrors = true;
-            return null;
-          }
-
-          break;
-
-        /**
-         * If it is a string find options by that name but note this method
-         * will only return results when only one option is found.
-         */
-        case 'string':
-          data = this.findByName(query);
-          break;
-        }
-
-        /**
-         * If no data or it has a falsey length property then show an error
-         * message. Note the promise will not be rejected but we should
-         * tell the user nothing was found by that query param.
-         */
-        if ((!data || !data.length) && !hasErrors) {
-          return this.error(query.toString());
-        }
-
-        data = data.map((id) => {
-          return {
-            action,
-            id,
-            type,
-            value: this.getOptionValue(id)
-          };
-        });
-
-        // Update the proper selections by the parsed query action
-        selections = selections.concat(data);
-      });
+      selections = this.processQueries(queries, reject);
 
       /**
        * No selections were made at all so lets throw an error and reject
        * this promise.
        */
-      // if (!selections.updated && !hasErrors) {
-      //   return this.error('3000:' + searchFor);
-      // }
 
-      if (!selections.length) return reject(searchFor);
+      if (!selections.length) throw new Error('no_match');
 
       resolve({ selectedItems: selections, queryCount: queries.length });
+    })
+    .catch((e) => {
+      switch (e.message) {
+      case 'no_match':
+        this.props.stdout.write(this.formatError(searchFor));
+        break;
+
+      default:
+        process.stderr.write((e.stack || e.message) +'\n');
+        break;
+      }
+
+      throw e;
     });
   }
 
@@ -243,6 +169,25 @@ class Menu extends Component {
   }
 
   /**
+   * Format Error
+   * Formats an error message to display to the user
+   *
+   * @method
+   * @public
+   * @param {string} searchFor - Original search param
+   * @returns {string} Formatted error message
+   */
+  formatError (searchFor) {
+    let cleanStr = stripAnsi(searchFor);
+
+    if (cleanStr) {
+      cleanStr = `(${cleanStr})`;
+    }
+
+    return colors.red.bold(`Huh ${cleanStr}?\n`);
+  }
+
+  /**
    * Get Option Value
    * Returns the value for the option of the given id.
    *
@@ -265,7 +210,7 @@ class Menu extends Component {
    * @returns {boolean} If menu options contain option with that id
    */
   hasOption (id) {
-    return this.options().map((option) => option.id).indexOf(id) > -1;
+    return this.options().map((option) => option.id).indexOf(Number(id)) > -1;
   }
 
   /**
@@ -277,7 +222,94 @@ class Menu extends Component {
    * @returns {array} Array of menu options
    */
   options () {
-    return this.props.options;
+    return this.state.options;
+  }
+
+  processQueries (queries) {
+    let selections = [],
+        hasErrors = false;
+
+    queries.forEach((query) => {
+      let { type, action, value } = query.data,
+          data;
+
+      if (action === 'unselect' && !this.props.canUnselect) {
+        hasErrors = true;
+        throw new Error('no_match');
+      }
+
+      // Go by type of action
+      switch (type) {
+
+      case 'all':
+        if (!this.props.acceptsMany) {
+          hasErrors = true;
+          throw new Error('no_match');
+        }
+
+        data = this.options().map((opt) => opt.id);
+        break;
+
+      /**
+       * If it's a range generate a range of ids which get filtered by if
+       * an option has that id or not.
+       */
+      case 'range':
+        if (!this.props.acceptsMany) {
+          hasErrors = true;
+          throw new Error('no_match');
+        }
+        data = this.range(value.min, value.max);
+        break;
+
+      /**
+       * If it is just an id then make sure an option by that id exists
+       * and if so return an array that contains that id otherwise an
+       * empty array to be used later
+       */
+      case 'id':
+        if (this.hasOption(value)) {
+          data = [value];
+        }
+        else {
+          hasErrors = true;
+          return;
+        }
+
+        break;
+
+      /**
+       * If it is a string find options by that name but note this method
+       * will only return results when only one option is found.
+       */
+      case 'string':
+        data = this.findByName(query);
+        break;
+      }
+
+      /**
+       * If no data or it has a falsey length property then show an error
+       * message. Note the promise will not be rejected but we should
+       * tell the user nothing was found by that query param.
+       */
+      if ((!data || !data.length) && !hasErrors) {
+        throw new Error('no_match');
+      }
+
+      data = data.map((id) => {
+        return {
+          action,
+          id,
+          type,
+          value: this.getOptionValue(id)
+        };
+      });
+
+      // Update the proper selections by the parsed query action
+      selections = selections.concat(data);
+    });
+
+    return selections;
   }
 
   /**
@@ -291,7 +323,21 @@ class Menu extends Component {
    * @returns {array} A range of values from min to max
    */
   range (min, max) {
-    return Array(max).map((value, i) => i + min).filter(this.hasOption);
+    return Reflect.apply(Array, null, Array(max))
+      .map((value, i) => i + min)
+      .filter(this.hasOption, this);
+  }
+
+  /**
+   * Set Options
+   * Create options 
+   * 
+   * @method
+   * @public
+   * @param {object} options - New options to display & filter
+   */
+  setOptions (options) {
+    this.setState({ options });
   }
 
   /** RENDER METHODS */
@@ -335,7 +381,7 @@ class Menu extends Component {
    * @returns {string} All the menu options
    */
   render () {
-    return this.props.options.map(this.renderOption, this).join('');
+    return this.state.options.map(this.renderOption, this).join('');
   }
 }
 

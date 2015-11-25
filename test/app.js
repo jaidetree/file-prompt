@@ -6,7 +6,9 @@ import StdoutInterceptor from './lib/stdout_interceptor';
 const DEFINED_METHODS = [
   'constructor',
   'getDefaultProps',
+  'getInitialState',
   'componentWillMount',
+  'componentDidMount',
   'componentWillUnmount',
   'renderPage',
   'render'

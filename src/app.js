@@ -4,6 +4,7 @@ import minimatch from 'minimatch';
 import path from 'path';
 import reducers from './reducers';
 import { createStore } from 'redux';
+import { navigateComplete } from './actions';
 
 /**
  * Read Dir
@@ -28,6 +29,10 @@ function readDir (dir, glob) {
     });
 
   return files;
+}
+
+function selectCurrentPage (store) {
+  return store.getState().currentPage;
 }
 
 /**
@@ -55,11 +60,11 @@ class App extends Component {
    */
   constructor (props) {
     super(props);
-    this.store = createStore(reducers, { 
+    this.store = createStore(reducers, {
       config: {
         basedir: this.props.basedir
-      }, 
-      files: [], 
+      },
+      files: [],
       currentPage: {
         name: 'index',
         props: {}
@@ -81,10 +86,49 @@ class App extends Component {
     };
   }
 
+  getInitialState () {
+    return {
+      pageName: null,
+      pageProps: null
+    } 
+  }
+
+  /**
+   * Component Will Mount
+   * Mounts the component 
+   *
+   * @method
+   * @private
+   */
   componentWillMount () {
+    let currentPage = selectCurrentPage(this.store);
+
+    this.setState({
+      pageName: currentPage.name,
+      pageProps: currentPage.props
+    });
+  }
+
+  /**
+   * Component Will Mount
+   * Subscribes to the store for changes and updates the display when
+   * the page changes.
+   *
+   * @method
+   * @private
+   */
+  componentDidMount () {
     this.unsubscribe = this.store.subscribe(() => {
-      this.forceUpdate();
-      Component.display(this);
+      let currentPage = selectCurrentPage(this.store);
+
+      if (currentPage.is_navigating) {
+        this.setState({
+          pageName: currentPage.name,
+          pageProps: currentPage.props
+        });
+        Component.display(this);
+        this.store.dispatch(navigateComplete());
+      }
     });
   }
 
@@ -101,21 +145,20 @@ class App extends Component {
    * @returns {string} Returns a rendered page
    */
   renderPage () {
-    let currentPage = this.store.getState().currentPage,
-        props = {
-          store: this.store
-        };
+    let props = {
+      store: this.store
+    };
 
-    if (!App.PAGES.hasOwnProperty(currentPage.name)) {
-      throw new Error(`App: Page does not exist “${currentPage.name}”.`);
+    if (!App.PAGES.hasOwnProperty(this.state.pageName)) {
+      throw new Error(`App: Page does not exist “${this.state.pageName}”.`);
     }
 
     // If we have extra props called from navigate send those in
-    if (currentPage.props) {
-      Object.assign(props, currentPage.props);
+    if (this.state.pageProps) {
+      Object.assign(props, this.state.pageProps);
     }
 
-    return new App.PAGES[currentPage.name](props).render();
+    return new App.PAGES[this.state.pageName](props).render();
   }
 
   /**

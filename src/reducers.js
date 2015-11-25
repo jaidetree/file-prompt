@@ -1,27 +1,33 @@
 import { combineReducers } from 'redux';
-import { ADD_FILE, REMOVE_FILE, NAVIGATE, SET_CONFIG, SET_PATH } from './actions';
+import { ADD_FILE, REMOVE_FILE, NAVIGATE, NAVIGATE_COMPLETE, SET_CONFIG, SET_PATH } from './actions';
 
 function files (state = [], action) {
+  let newState = state.slice();
+
   switch (action.type) {
   case ADD_FILE:
-    let newState = state.slice();
+    if (state.indexOf(action.file) > -1) return state;
 
-    newState.push(action.file);
-
-    return newState;
+    return state.concat([action.file]);
 
   case REMOVE_FILE:
-    return state.slice().splice(state.indexOf(action.file), 1);
+    if (state.indexOf(action.file) === -1) return state;
+    newState.splice(state.indexOf(action.file), 1);
+
+    return newState;
 
   default:
     return state;
   }
 }
 
-function currentPage (state = { name: 'index', props: {} }, action) {
+function currentPage (state = { name: 'index', props: {}, is_navigating: false }, action) {
   switch (action.type) {
   case NAVIGATE:
-    return { name: action.name, props: action.props };
+    return { name: action.name, props: action.props, is_navigating: true };
+
+  case NAVIGATE_COMPLETE:
+    return { name: state.name, props: state.props, is_navigating: false };
 
   default:
     return state;

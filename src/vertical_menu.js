@@ -51,7 +51,13 @@ class VerticalMenu extends Menu {
    * @returns {string} Formatted option
    */
   renderOption (option) {
-    return `  ${this.renderColumn(option.id + ':')} ${option.label}\n`;
+    let selected = ' ';
+
+    if (option.isSelected) {
+      selected = '*';
+    }
+
+    return `${selected} ${this.renderColumn(option.id + ':')} ${option.label}\n`;
   }
 }
 

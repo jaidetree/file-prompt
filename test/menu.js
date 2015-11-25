@@ -103,7 +103,8 @@ describe('Menu', () => {
     it('Should allow * to find all items if acceptMany is on to subtract', () => {
       let menu = new Menu({
         options: MENU_OPTIONS,
-        acceptsMany: true
+        acceptsMany: true,
+        stdout: new MockStdout()
       });
 
       menu.find('-*')
@@ -115,6 +116,23 @@ describe('Menu', () => {
           expect(selectedItems.every((item) => item.action === 'remove'));
         });
     });
+
+    it('Should allow a range', () => {
+      let menu = new Menu({
+        options: MENU_OPTIONS,
+        acceptsMany: true,
+        stdout: new MockStdout()
+      });
+
+      menu.find('1-3')
+        .then((result) => {
+          let selectedItems = result.selectedItems;
+
+          expect(selectedItems).toBeA(Array);
+          expect(selectedItems.length).toBe(3);
+        });
+    });
+    
     
   });
 

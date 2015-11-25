@@ -1,4 +1,4 @@
-/* eslint no-magic-numbers: 0  */
+/* eslint no-param-reassign: 0  */
 // import readline from 'readline';
 import colors from 'chalk';
 

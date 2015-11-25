@@ -1,43 +1,11 @@
 import expect from 'expect';
 import IndexPage from '../src/pages/index_page';
-import path from 'path';
 import MockStdout from './lib/mock_stdout';
 import MockStdin from './lib/mock_stdin';
 import StdoutInterceptor from './lib/stdout_interceptor';
-import reducers from '../src/reducers';
-import { createStore } from 'redux';
-
-class StoreFactory {
-  static defaults = {
-    config: {
-      basedir: path.resolve(__dirname, '..')
-    },
-    files: [],
-    currentPage: {
-      name: 'index',
-      props: {}
-    }
-  };
-
-  static create (data={}) {
-    let store = createStore(reducers, Object.assign({}, StoreFactory.defaults, data));
-
-    store.select = function select (keystr) {
-      let selection = this.getState();
-
-      keystr.split('.').forEach((key) => {
-        selection = selection[key];
-      });
-
-      return selection;
-    };
-
-    return store;
-  }
-}
+import StoreFactory from './factories/store';
 
 let stdout = new MockStdout();
-
 
 describe('Index Page', () => {
   afterEach(() => {
@@ -76,9 +44,11 @@ describe('Index Page', () => {
   describe('#render()', () => {
     it('Should render the intro, menu, and prompt', () => {
       let ceptor = new StdoutInterceptor(),
+          store = StoreFactory.create(),
           page = new IndexPage({
             stdin: new MockStdin(['Test string']),
-            stdout
+            stdout,
+            store
           }),
           output;
 
@@ -124,9 +94,8 @@ describe('Index Page', () => {
           });
 
       page.prompt()
-        .then((results) => {
-          expect(results).toExist();
-          expect(results).toBe('-1');
+        .catch((e) => {
+          expect(e).toExist();
           expect(stdout.toString()).toBe('\x1b[34m\x1b[1mWhat do you seek?\x1b[22m\x1b[39m\x1b[35m\x1b[1m > \x1b[22m\x1b[39m\x1b[31m\x1b[1mHuh (-1)? \n\x1b[22m\x1b[39m\x1b[37m\x1b[1m*** COMMANDS ***\x1b[22m\x1b[39m\n  1: \x1b[35m\x1b[1md\x1b[22m\x1b[39mirectories      2: \x1b[35m\x1b[1mf\x1b[22m\x1b[39miles            3: \x1b[35m\x1b[1mg\x1b[22m\x1b[39mlob             4: \x1b[35m\x1b[1mc\x1b[22m\x1b[39mhanged        \n  5: \x1b[35m\x1b[1mh\x1b[22m\x1b[39melp             6: \x1b[35m\x1b[1mq\x1b[22m\x1b[39muit           \n\x1b[34m\x1b[1mWhat do you seek?\x1b[22m\x1b[39m\x1b[35m\x1b[1m > \x1b[22m\x1b[39m');
           stdin.pause();
         })
@@ -198,26 +167,42 @@ describe('Index Page', () => {
       stdin.emit('readable');
     });
 
-    it('Should exist on quit', (done) => {
+    it('Should exit on quit', (done) => {
       let stdin = new MockStdin(['q']),
           store = StoreFactory.create(),
-          spy = expect.createSpy(),
           page = new IndexPage({
             stdin,
             stdout,
             store
-          });
-
-      // Probably dangerous but this is kinda cool?
-      process.exit = spy;
+          }),
+          spy = expect.spyOn(page, 'quit').andCallThrough();
 
       page.prompt()
         .then((results) => {
           expect(results).toExist();
           expect(results.selectedItems).toBeA(Array);
           expect(results.selectedItems[0].value).toBe('quit');
-          expect(stdout.toString()).toInclude('Later skater');
+          expect(stdout.toString()).toInclude('Done.');
           expect(spy).toHaveBeenCalled();
+        })
+        .then(done, done);
+
+      stdin.emit('readable');
+    });
+
+    it('Should catch an error on *', (done) => {
+      let stdin = new MockStdin(['*']),
+          store = StoreFactory.create(),
+          page = new IndexPage({
+            stdin,
+            stdout,
+            store
+          });
+
+      page.prompt()
+        .catch((e) => {
+          expect(e).toExist();
+          expect(stdout.toString()).toInclude('Huh (*)?');
         })
         .then(done, done);
 

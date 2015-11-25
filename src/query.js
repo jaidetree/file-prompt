@@ -39,7 +39,7 @@ export default class Query {
   static createFrom (query) {
     // Separates the query into all groupings of strings, numbers, ranges
     // sequences etc... then map them into query instances for testing.
-    try { 
+    try {
       return query.split(/,| /g)
         .filter((subQuery) => {
           // No blanks.
@@ -142,7 +142,7 @@ export default class Query {
    * @returns {boolean} If query is a range
    */
   isAsterik () {
-    return this.query.length <= 2 && /\*$/.test(this.query);
+    return this.query.length <= 2 && (/\*$/).test(this.query);
   }
 
   /**
@@ -165,7 +165,7 @@ export default class Query {
    * @returns {boolean} If query starts with the str
    */
   isStartOf (str) {
-    return str.toLowerCase().startsWith(this.query);
+    return str.toLowerCase().startsWith(this.data.value);
   }
 
   /**

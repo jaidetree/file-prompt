@@ -23,7 +23,7 @@ class Page extends Component {
     return {
       stdin: process.stdin,
       stdout: process.stdout
-    }
+    };
   }
 
   /**
@@ -79,7 +79,7 @@ class Page extends Component {
     let result = this.props.store.getState();
 
     keystr.split('.').map((key) => {
-      result = result[key]; 
+      result = result[key];
     });
 
     return result;
