@@ -1,5 +1,5 @@
 /* eslint no-console: 0 */
-import fileprompt from './lib';
+var fileprompt = require('./lib').default;
 
 fileprompt()
 
