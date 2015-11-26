@@ -24,7 +24,9 @@ App.PAGES.test = TestComponent;
 
 describe('App', () => {
   after(() => {
-    process.stdin.end();
+    if (process.stdin.end) {
+      process.stdin.end();
+    }
   });
 
   afterEach(() => {

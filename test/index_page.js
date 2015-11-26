@@ -14,7 +14,9 @@ describe('Index Page', () => {
   });
 
   after(() => {
-    process.stdin.end();
+    if (process.stdin.end) {
+      process.stdin.end();
+    }
   });
 
   describe('#constructor()', () => {

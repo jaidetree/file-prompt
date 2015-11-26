@@ -36,6 +36,7 @@ function build (stream) {
         .send();
     }))
     .pipe(babel(babelConfig))
+    .pipe(uglify())
     .pipe(gulp.dest(project.paths.js.dest))
     .pipe(tap((file) => {
       log.success('build')
