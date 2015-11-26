@@ -4,7 +4,8 @@
   "description": "An interactive prompt for selecting files from a directory.",
   "main": "index.js",
   "scripts": {
-    "test": "gulp test"
+    "test": "gulp test",
+    "prepublish": "gulp lint && gulp test && clean build"
   },
   "repository": {
     "type": "git",
