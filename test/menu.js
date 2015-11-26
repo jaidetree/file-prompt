@@ -1,3 +1,4 @@
+import Promise from 'bluebird';
 import expect from 'expect';
 import Menu from '../src/menu';
 import MockStdout from './lib/mock_stdout';

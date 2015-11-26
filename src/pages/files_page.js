@@ -173,10 +173,7 @@ export default class FilesPage extends Page {
 
         reprompt();
       })
-      .catch((e) => {
-        this.displayError(e);
-        reprompt();
-      });
+      .catch(Page.NoMatchError, reprompt);
   }
 
   /**

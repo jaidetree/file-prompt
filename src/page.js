@@ -9,6 +9,20 @@ import { navigate } from './actions';
  * @class
  */
 export default class Page extends Component {
+
+  /**
+   * No Match Error
+   * Predicate to determine if error is no match action or otherwise
+   *
+   * @method
+   * @public
+   * @param {Errror} e - Error instance to test against
+   * @returns {boolean} true if no match error
+   */
+  static NoMatchError (e) {
+    return e.message === "no_match";
+  }
+
   /**
    * Constructor
    * Initializes the page class

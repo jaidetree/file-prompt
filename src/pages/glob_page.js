@@ -186,10 +186,7 @@ export default class GlobPage extends Page {
 
           reprompt();
         })
-        .catch((e) => {
-          this.displayError(e);
-          reprompt();
-        });
+        .catch(Page.NoMatchError, reprompt);
     }
     else {
       this.state.prompt.beckon(this.question())
@@ -255,7 +252,7 @@ export default class GlobPage extends Page {
       return 'Add files';
     }
 
-    basedir = path.relative(path.resolve(this.select('config.basedir'), '..'), basedir);
+    basedir = path.relative(path.resolve(this.select('config.base'), '..'), basedir);
 
     return `Enter glob from ${basedir}`;
   }

@@ -1,6 +1,7 @@
 import colors from 'chalk';
 import column from './util/column';
 import Component from './component';
+import Promise from 'bluebird';
 import Query from './query';
 import stripAnsi from 'strip-ansi';
 

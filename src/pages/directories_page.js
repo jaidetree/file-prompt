@@ -189,10 +189,7 @@ export default class DirectoriesPage extends Page {
 
         reprompt();
       })
-      .catch((e) => {
-        this.displayError(e);
-        reprompt();
-      });
+      .catch(Page.NoMatchError, reprompt);
   }
 
   /**

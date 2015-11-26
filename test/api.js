@@ -6,8 +6,25 @@ import path from 'path';
 import StdoutInterceptor from './lib/stdout_interceptor';
 
 describe('FilePrompt', () => {
-  it('Should prompt for files in the src directory', (done) => {
+  it('Should select 2 files from the src directory', (done) => {
     let stdin = new MockStdin(['2', '1 2', '', 'q']),
+        stdout = new MockStdout();
+
+
+    fileprompt({
+      stdin,
+      stdout
+    })
+    .then((files) => {
+      expect(files).toExist();
+      expect(files).toBeA(Array);
+      expect(files.map((file) => path.basename(file))).toEqual(['actions.js', 'app.js']);
+    })
+    .then(done, done);
+  });
+
+  it('Should select 2 files from a glob str', (done) => {
+    let stdin = new MockStdin(['3','**/*.js', '1 2', '', 'q']),
         stdout = new MockStdout();
 
 

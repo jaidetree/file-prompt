@@ -125,10 +125,7 @@ export default class IndexPage extends Page {
 
         return results;
       })
-      .catch((e) => {
-        this.displayError(e);
-        reprompt();
-      });
+      .catch(Page.NoMatchError, reprompt);
   }
 
   /**

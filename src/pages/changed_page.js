@@ -178,10 +178,7 @@ export default class ChangedPage extends Page {
 
         reprompt();
       })
-      .catch((e) => {
-        this.displayError(e);
-        reprompt();
-      });
+      .catch(Page.NoMatchError, reprompt);
   }
 
   /**
