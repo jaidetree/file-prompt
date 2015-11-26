@@ -72,7 +72,7 @@ class App extends Component {
         base: this.props.base
       },
       files: [],
-      filter: this.props.filter,
+      glob: this.props.glob,
       currentPage: {
         name: 'index',
         props: {}

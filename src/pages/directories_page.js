@@ -5,6 +5,7 @@ import Page from '../page';
 import path from 'path';
 import Prompt from '../prompt';
 import { addFile, removeFile } from '../actions';
+import { Minimatch } from 'minimatch';
 
 /**
  * Menu Options format
@@ -73,40 +74,59 @@ class DirectoriesPage extends Page {
    * Get Files
    * Returns an array of files to select
    *
+   * @param {string} glob - Globstr to test the page against
    * @param {string} [dir] - Directory to look through
    * @returns {array} Array of menu options
    */
-  getFiles (dir) {
+  getFiles (glob, dir) {
     let configBasedir = this.select('config.base'),
         isBaseDir = dir === configBasedir,
         selectedFiles = this.select('files'),
-        files = [];
+        files = [],
+        directories = [],
+        mm = new Minimatch(glob);
 
     files = fs.readdirSync(dir);
 
-    files = files.map((file, i) => {
-      let filepath = path.join(dir, file),
-          label = path.relative(dir, filepath),
-          stats = fs.statSync(filepath),
-          isDirectory = stats.isDirectory();
+    files = files
+      // Map to full filepath
+      .map((file) => path.join(dir, file))
 
-      if (isDirectory) {
-        label = label + '/';
-      }
+      // First filter files against our glob
+      .filter((filepath) => {
+        let stats = fs.statSync(filepath);
 
-      return {
-        id: isBaseDir ? i + 1 : i + 2,
-        name: label,
-        value: filepath,
-        isSelected: selectedFiles.indexOf(filepath) > -1,
-        label: isDirectory ? colors.bold(label) : label
-      };
-    });
+        // If we have a directory store it and move on as we are good
+        if (stats.isDirectory()) {
+          directories.push(filepath);
+          return true;
+        }
 
+        return mm.match(filepath);
+      })
+      // Second filter files against
+      .map((filepath, i) => {
+        let label = path.relative(dir, filepath),
+            isDirectory = directories.indexOf(filepath) > -1;
+
+        // if file was a directory add a slash to the label
+        if (isDirectory) label += '/';
+
+        return {
+          id: isBaseDir ? i + 1 : i + 2,
+          name: label,
+          value: filepath,
+          isSelected: selectedFiles.indexOf(filepath) > -1,
+          // Make dir labels bold bold
+          label: isDirectory ? colors.bold(label) : label
+        };
+      });
+
+    // If we nested in the baedir add an option to go back
     if (dir !== configBasedir) {
       files.unshift({
         id: 1,
-        name: path.basename(path.resolve(dir, '..')),
+        name: '..',
         value: path.resolve(dir, '..'),
         label: colors.bold('..')
       });
@@ -169,7 +189,8 @@ class DirectoriesPage extends Page {
 
         reprompt();
       })
-      .catch(() => {
+      .catch((e) => {
+        this.displayError(e);
         reprompt();
       });
   }
@@ -200,7 +221,7 @@ class DirectoriesPage extends Page {
       this.updateFiles(selectedFiles);
     });
 
-    if (selectedDir) {
+    if (selectedDir && selections.length === 1) {
       this.navigate('directories', { base: selectedDir });
       return true;
     }
@@ -222,7 +243,7 @@ class DirectoriesPage extends Page {
   }
 
   renderMenu () {
-    this.state.menu.setOptions(this.getFiles(this.getBasedir()));
+    this.state.menu.setOptions(this.getFiles(this.getGlob(), this.getBasedir()));
     return this.state.menu.render();
   }
 

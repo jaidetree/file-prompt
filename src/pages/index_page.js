@@ -126,8 +126,8 @@ class IndexPage extends Page {
         return results;
       })
       .catch((e) => {
+        this.displayError(e);
         reprompt();
-        throw e;
       });
   }
 

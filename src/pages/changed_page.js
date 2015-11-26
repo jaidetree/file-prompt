@@ -54,10 +54,8 @@ class ChangedPage extends Page {
    * @returns {object} Initial state properties
    */
   getInitialState () {
-    let filter = this.props.filter || this.select('filter');
-
     return {
-      files: this.getFiles(filter),
+      files: this.getFiles(this.getGlob()),
       menu: new VerticalMenu({
         canUnselect: true,
         acceptsMany: true,
@@ -180,7 +178,8 @@ class ChangedPage extends Page {
 
         reprompt();
       })
-      .catch(() => {
+      .catch((e) => {
+        this.displayError(e);
         reprompt();
       });
   }

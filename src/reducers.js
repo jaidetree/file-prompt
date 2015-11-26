@@ -72,23 +72,23 @@ function files (state = [], action) {
 }
 
 /**
- * Filter
- * Updates the current filter for finding a specific type of file
+ * Glob
+ * Updates the current glob filter for finding a specific type of file
  *
  * @param {string} state - The filter to be used
  * @param {object} action - Which action to apply to the filter
  * @returns {string} New filter
  */
-function filter (state = '**/*.js', action) {
+function glob (state = '**/*.js', action) {
   switch (action.type) {
   case SET_FILTER:
-    return action.filter;
+    return action.glob;
 
   default:
     return state;
   }
 }
 
-const reducers = combineReducers({ config, currentPage, files, filter });
+const reducers = combineReducers({ config, currentPage, files, glob });
 
 export default reducers;

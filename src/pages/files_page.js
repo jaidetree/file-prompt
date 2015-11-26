@@ -57,7 +57,7 @@ class FilesPage extends Page {
     let data = super.getDefaultProps();
 
     Object.assign(data, {
-      filter: '**/*.js'
+      glob: '**/*.js'
     });
 
     return data;
@@ -173,7 +173,8 @@ class FilesPage extends Page {
 
         reprompt();
       })
-      .catch(() => {
+      .catch((e) => {
+        this.displayError(e);
         reprompt();
       });
   }
@@ -192,7 +193,7 @@ class FilesPage extends Page {
   }
 
   renderMenu () {
-    this.state.menu.setOptions(this.getFiles(this.props.filter));
+    this.state.menu.setOptions(this.getFiles(this.getGlob()));
     return this.state.menu.render();
   }
 

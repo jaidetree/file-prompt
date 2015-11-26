@@ -1,3 +1,4 @@
+import colors from 'chalk';
 import Component from './component';
 import { navigate } from './actions';
 
@@ -19,6 +20,14 @@ class Page extends Component {
     super(props);
   }
 
+  /**
+   * Get Default Props
+   * Returns default properties for this component instance
+   *
+   * @method
+   * @public
+   * @returns {object} Default component properties
+   */
   getDefaultProps () {
     return {
       stdin: process.stdin,
@@ -54,6 +63,18 @@ class Page extends Component {
   }
 
   /**
+   * Display Error
+   * Displays the error message to the user if there is one
+   *
+   * @method
+   * @param {Error} e - Error object
+   */
+  displayError (e) {
+    if (e.message === 'no_match') return;
+    process.stderr.write(colors.bold.red(e.stack || e.message) + '\n');
+  }
+
+  /**
    * Get Basedir
    * Returns the basedir from props or what is in the app state's config
    *
@@ -63,6 +84,18 @@ class Page extends Component {
    */
   getBasedir () {
     return this.props.base || this.select('config.base');
+  }
+
+  /**
+   * Get Glob
+   * Returns the glob filter prop or reads from global store
+   *
+   * @method
+   * @public
+   * @returns {string} The found glob string
+   */
+  getGlob () {
+    return this.props.glob || this.select('glob');
   }
 
   /**

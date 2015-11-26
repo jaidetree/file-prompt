@@ -186,7 +186,8 @@ class GlobPage extends Page {
 
           reprompt();
         })
-        .catch(() => {
+        .catch((e) => {
+          this.displayError(e);
           reprompt();
         });
     }
