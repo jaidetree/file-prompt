@@ -74,7 +74,7 @@ function writeArray (content, component) {
  * @property {object} properties - Initial properties of the component
  * @property {array} listeners - Collection of current listeners
  */
-class Component extends EventEmitter {
+export default class Component extends EventEmitter {
 
   state = {};
   props = {};
@@ -476,5 +476,3 @@ class Component extends EventEmitter {
   }
 
 }
-
-export default Component;

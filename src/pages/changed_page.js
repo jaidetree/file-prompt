@@ -30,7 +30,7 @@ import { execSync } from 'child_process';
  * @property {string} intro - Introduction text
  * @property {string} question - Prompt question
  */
-class ChangedPage extends Page {
+export default class ChangedPage extends Page {
 
   question = 'Add files';
 
@@ -206,5 +206,3 @@ class ChangedPage extends Page {
     return this.prompt.bind(this);
   }
 }
-
-export default ChangedPage;

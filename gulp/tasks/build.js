@@ -5,6 +5,7 @@
 import gulp from 'gulp';
 import babel from 'gulp-babel';
 import plumber from 'gulp-plumber';
+import uglify from 'gulp-uglify';
 import watch from 'gulp-watch';
 
 // Other modules

@@ -30,7 +30,7 @@ import { addFile, removeFile } from '../actions';
  * @property {string} intro - Introduction text
  * @property {string} question - Prompt question
  */
-class GlobPage extends Page {
+export default class GlobPage extends Page {
 
   /**
    * Constructor
@@ -274,5 +274,3 @@ class GlobPage extends Page {
     return this.prompt.bind(this);
   }
 }
-
-export default GlobPage;

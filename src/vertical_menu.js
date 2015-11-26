@@ -11,7 +11,7 @@ const MAX_COLUMN_WIDTH = 6;
  * @class VerticalMenu
  * @extends {Menu}
  */
-class VerticalMenu extends Menu {
+export default class VerticalMenu extends Menu {
 
   /**
    * Constructor
@@ -60,5 +60,3 @@ class VerticalMenu extends Menu {
     return `${selected} ${this.renderColumn(option.id + ':')} ${option.label}\n`;
   }
 }
-
-export default VerticalMenu;

@@ -15,7 +15,7 @@ const ITEMS_PER_ROW = 4,
  * @class Menu
  * @extends {Component}
  */
-class Menu extends Component {
+export default class Menu extends Component {
 
   /**
    * Constructor
@@ -335,7 +335,7 @@ class Menu extends Component {
    * @returns {array} A range of values from min to max
    */
   range (min, max) {
-    return Array.apply(null, Array(max + 1 - min))
+    return ' '.repeat(max - min).split(' ')
       .map((value, i) => i + min)
       .filter(this.hasOption, this);
   }
@@ -395,5 +395,3 @@ class Menu extends Component {
     return this.state.options.map(this.renderOption, this).join('');
   }
 }
-
-export default Menu;

@@ -29,7 +29,7 @@ import { addFile, removeFile } from '../actions';
  * @property {string} intro - Introduction text
  * @property {string} question - Prompt question
  */
-class FilesPage extends Page {
+export default class FilesPage extends Page {
 
   question = 'Add files';
 
@@ -201,5 +201,3 @@ class FilesPage extends Page {
     return this.prompt.bind(this);
   }
 }
-
-export default FilesPage;

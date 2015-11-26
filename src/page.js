@@ -8,7 +8,7 @@ import { navigate } from './actions';
  *
  * @class
  */
-class Page extends Component {
+export default class Page extends Component {
   /**
    * Constructor
    * Initializes the page class
@@ -157,5 +157,3 @@ class Page extends Component {
   }
 
 }
-
-export default Page;

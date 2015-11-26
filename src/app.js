@@ -48,7 +48,7 @@ function selectCurrentPage (store) {
  *
  * @class App
  */
-class App extends Component {
+export default class App extends Component {
   /**
    * Pages
    * A collection of pages mapped to things
@@ -203,5 +203,3 @@ class App extends Component {
     return this.renderPage();
   }
 }
-
-export default App;

@@ -53,7 +53,7 @@ const MENU_OPTIONS = [{
  * @property {string} intro - Introduction text
  * @property {string} question - Prompt question
  */
-class IndexPage extends Page {
+export default class IndexPage extends Page {
 
   intro = '*** COMMANDS ***';
   question = 'What do you seek?';
@@ -227,5 +227,3 @@ class IndexPage extends Page {
     return this.state.menu.render() + '\n';
   }
 }
-
-export default IndexPage;

@@ -31,7 +31,7 @@ import { Minimatch } from 'minimatch';
  * @property {string} intro - Introduction text
  * @property {string} question - Prompt question
  */
-class DirectoriesPage extends Page {
+export default class DirectoriesPage extends Page {
 
   question = 'Add files or enter directory';
 
@@ -251,5 +251,3 @@ class DirectoriesPage extends Page {
     return this.prompt.bind(this);
   }
 }
-
-export default DirectoriesPage;

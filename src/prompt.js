@@ -10,7 +10,7 @@ import colors from 'chalk';
  * @property {string} text - The question text to ask.
  * @property {object} options - Options to use
  */
-class Prompt {
+export default class Prompt {
   /**
    * Class properties
    */
@@ -124,5 +124,3 @@ class Prompt {
     return colors.blue.bold(this.text);
   }
 }
-
-export default Prompt;
