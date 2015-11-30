@@ -1,10 +1,13 @@
 import colors from 'chalk';
 import fs from 'fs';
-import VerticalMenu from '../vertical_menu';
+import Dispatcher from '../streams/base_dispatcher';
+import GenericTransform from '../streams/generic_transform';
+import MenuTransform from '../streams/menu_transform';
 import Page from '../page';
 import path from 'path';
 import Prompt from '../prompt';
-import { addFile, removeFile } from '../actions';
+import QueriesTransform from '../streams/queries_transform';
+import VerticalMenu from '../vertical_menu';
 import { Minimatch } from 'minimatch';
 
 /**
@@ -44,6 +47,19 @@ export default class DirectoriesPage extends Page {
    */
   constructor (props) {
     super(props);
+
+    this.menu = new VerticalMenu({
+      canUnselect: true,
+      acceptsMany: true,
+      stdin: this.props.stdin,
+      stdout: this.props.stdout,
+      app: this.props.app
+    });
+
+    this.prompt = new Prompt({
+      stdin: this.props.stdin,
+      stdout: this.props.stdout
+    });
   }
 
   /**
@@ -56,17 +72,8 @@ export default class DirectoriesPage extends Page {
    */
   getInitialState () {
     return {
-      menu: new VerticalMenu({
-        canUnselect: true,
-        acceptsMany: true,
-        stdin: this.props.stdin,
-        stdout: this.props.stdout,
-        app: this.props.app
-      }),
-      prompt: new Prompt({
-        stdin: this.props.stdin,
-        stdout: this.props.stdout
-      })
+      selected: [],
+      targetDir: null
     };
   }
 
@@ -136,115 +143,88 @@ export default class DirectoriesPage extends Page {
   }
 
   /**
-   * Update Files
-   * Selects or unselects files from the store
-   *
-   * @method
-   * @public
-   * @param {array} updates - Array of updates from the prompt
-   */
-  updateFiles (updates) {
-    if (!Array.isArray(updates)) return;
-
-    updates.forEach((update) => {
-      if (update.action === "select") {
-        this.dispatch(addFile(update.value));
-      }
-      else {
-        this.dispatch(removeFile(update.value));
-      }
-    });
-  }
-
-  /**
-   * Prompt
+   * Show Prompt
    * Beckons the prompt
    *
    * @method
    * @public
+   * @returns {Stream} A transform stream
    */
-  prompt () {
-    let reprompt = () => {
-      this.props.stdout.write(this.renderMenu());
-      this.prompt();
-    };
-
-    this.state.prompt.beckon(this.question)
-      .then(this.processInput.bind(this))
-      .then((results) => {
-        let { selectedItems, queryCount } = results;
-
-        /**
-         * If the only input given is an empty response lets go back to
-         * the index.
-         */
-        if (queryCount === 1 && selectedItems[0].value === null) {
-          return this.navigate('index');
-        }
-
-        // Returns true if navigating, if so don't reprompt :D
-        if (this.processFiles(selectedItems)) {
-          return results;
-        }
-
-        reprompt();
-      })
-      .catch(Page.NoMatchError, reprompt);
+  showPrompt () {
+    return this.prompt.beckon(this.question)
+      .pipe(new QueriesTransform())
+      .pipe(new MenuTransform({
+        choices: this.menu.options()
+      }))
+      .pipe(new GenericTransform(this.processFile.bind(this)))
+      .pipe(new Dispatcher({
+        store: this.props.store,
+        route: this.route
+      }))
+      .then(this.reprompt);
   }
 
   /**
-   * Process Files
+   * Process File
    *
    * @method
    * @public
-   * @param {array} selections - Selected files & folders
-   * @returns {boolean} If we are navigating or not
+   * @param {Stream} stream - The ongoing transformation stream
+   * @param {object} transformAction - Transform action
    */
-  processFiles (selections) {
-    let selectedFiles = [],
-        selectedDir = null;
+  processFile (stream, transformAction) {
+    let selectedDir = null,
+        data = transformAction.data,
+        params = transformAction.params,
+        filepath = data.value,
+        stats;
 
-    selections.forEach((selection) => {
-      let filepath = selection.value,
-          stats = fs.statSync(filepath);
-
-      if (stats.isDirectory() && !selectedDir && selection.type !== 'all') {
-        selectedDir = filepath;
-      }
-      else if (!stats.isDirectory()) {
-        selectedFiles.push(selection);
-      }
-
-      this.updateFiles(selectedFiles);
-    });
-
-    if (selectedDir && selections.length === 1) {
-      this.navigate('directories', { base: selectedDir });
-      return true;
+    // If transform Action is not a file, just push it down.
+    if (transformAction.type !== 'file') {
+      stream.push(transformAction);
+      return;
     }
 
-    return false;
+    stats = fs.statSync(filepath);
+
+    /**
+     * If directory change the transform action so that it does not get
+     * selected in the store.
+     */
+    if (stats.isDirectory() ) {
+      selectedDir = filepath;
+      transformAction.type = 'directory';
+    }
+
+    /**
+     * If we have a selected dir, there is not one already and it's the
+     * only value input and not from a multiple item select then we're good.
+     */
+    if (
+      selectedDir 
+      && params.queryCount === 1 
+      && !this.state.targetDir
+      && data.type === 'single'
+    ) {
+      this.state.targetDir = selectedDir;
+    }
+
+    stream.push(transformAction);
   }
 
-  /**
-   * Process Input
-   * Deal with the answer from our prompt
-   *
-   * @method
-   * @public
-   * @param {string} answer - User input value
-   * @returns {promise} Returns a promise to return the result
-   */
-  processInput (answer) {
-    return this.state.menu.find(answer);
+  route () {
+    if (this.state.targetDir) {
+      this.navigate('directories', { base: this.state.targetDir });
+      return true;
+    }
   }
 
   renderMenu () {
-    this.state.menu.setOptions(this.getFiles(this.getGlob(), this.getBasedir()));
-    return this.state.menu.render();
+    this.menu.setOptions(this.getFiles(this.getGlob(), this.getBasedir()));
+    return this.menu.render();
   }
 
   renderPrompt () {
-    return this.prompt.bind(this);
+    return this.showPrompt;
   }
 }

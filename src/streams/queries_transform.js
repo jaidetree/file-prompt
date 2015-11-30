@@ -76,7 +76,7 @@ export default class QueriesTransform extends BaseTransform {
         creator: 'menu',  // Create an empty menu selection action
         type: 'action', // As it's not a file just an empty action
         data: {
-          operation: 'select',
+          operation: 'blank',
           value: null
         },
         params: {

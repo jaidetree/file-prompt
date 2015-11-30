@@ -7,6 +7,7 @@
  */
 export default function bindMethods (context, ...methods) {
   methods.forEach((methodName) => {
+    if (!context[methodName]) return;
     context[methodName] = context[methodName].bind(context);
   });
 }

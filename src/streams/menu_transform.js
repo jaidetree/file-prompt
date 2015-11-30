@@ -11,7 +11,7 @@ import path from 'path';
  * @returns {array} Sliced array of ids within the given range
  */
 function range (ids, min, max) {
-  return ids.slice(min - 1, max - min);
+  return ids.slice(min - 1, max);
 }
 
 export default class MenuTransform extends BaseTransform {
@@ -194,11 +194,13 @@ export default class MenuTransform extends BaseTransform {
       case 'id':
         if (!this.hasId(value)) return this.matchError(query);
         data = [value];
+        type = 'single';
         break;
 
       // Query is a string type so try to find a match by the name
       case 'string':
         data = this.getChoiceByName(query);
+        type = 'single';
         break;
     }
 

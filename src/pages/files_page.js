@@ -4,8 +4,8 @@ import MenuTransform from '../streams/menu_transform';
 import Page from '../page';
 import path from 'path';
 import Prompt from '../prompt';
-import VerticalMenu from '../vertical_menu';
 import QueriesTransform from '../streams/queries_transform';
+import VerticalMenu from '../vertical_menu';
 
 /**
  * Menu Options format
@@ -44,7 +44,7 @@ export default class FilesPage extends Page {
    */
   constructor (props) {
     super(props);
-    
+
     this.menu = new VerticalMenu({
       canUnselect: true,
       acceptsMany: true,
@@ -105,28 +105,6 @@ export default class FilesPage extends Page {
       }) || [];
   }
 
-  route (creator, action, data, params) {
-    let { operation, value, type } = data;
-
-    /**
-     * If the only input given is an empty response lets go back to
-     * the index.
-     */
-    if (params.queryCount === 1 && value === null) {
-      this.navigate('index');
-      return true;
-    }
-
-    /**
-     * If the only param was a single "*" add the files and navigate
-     * away to the index page
-     */
-    if (params.queryCount === 1 && type === "all" && operation === 'select') {
-      this.navigate('index');
-      return true;
-    }
-  }
-
   /**
    * Prompt
    * Beckons the prompt
@@ -135,20 +113,15 @@ export default class FilesPage extends Page {
    * @public
    */
   showPrompt () {
-    let to = this.pipeTo;
-
     this.prompt.beckon(this.question)
-      .pipe(to(new QueriesTransform()))
-      .pipe(to(new MenuTransform({
+      .pipe(new QueriesTransform())
+      .pipe(new MenuTransform({
         choices: this.menu.options()
-      })))
-      .pipe(to(new Dispatcher({
-        store: this.props.store,
-        route: this.route 
-      })))
-      .then(() => {
-        this.reprompt();
-      });
+      }))
+      .pipe(new Dispatcher({
+        store: this.props.store
+      }))
+      .then(this.reprompt);
   }
 
   /**

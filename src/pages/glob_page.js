@@ -1,9 +1,12 @@
 import colors from 'chalk';
 import glob from 'glob';
-import VerticalMenu from '../vertical_menu';
-import Page from '../page';
+import Dispatcher from '../streams/base_dispatcher';
+import GenericTransform from '../streams/generic_transform';
+import MenuTransform from '../streams/menu_transform'; import Page from '../page';
 import path from 'path';
 import Prompt from '../prompt';
+import QueriesTransform from '../streams/queries_transform';
+import VerticalMenu from '../vertical_menu';
 import { addFile, removeFile } from '../actions';
 
 /**
@@ -41,6 +44,19 @@ export default class GlobPage extends Page {
    */
   constructor (props) {
     super(props);
+
+    this.menu = new VerticalMenu({
+      canUnselect: true,
+      acceptsMany: true,
+      stdin: this.props.stdin,
+      stdout: this.props.stdout,
+      app: this.props.app
+    });
+
+    this.prompt = new Prompt({
+      stdin: this.props.stdin,
+      stdout: this.props.stdout
+    });
   }
 
   /** LIFECYCLE METHODS */
@@ -56,18 +72,7 @@ export default class GlobPage extends Page {
   getInitialState () {
     return {
       files: [],
-      filter: null,
-      menu: new VerticalMenu({
-        canUnselect: true,
-        acceptsMany: true,
-        stdin: this.props.stdin,
-        stdout: this.props.stdout,
-        app: this.props.app
-      }),
-      prompt: new Prompt({
-        stdin: this.props.stdin,
-        stdout: this.props.stdout
-      })
+      filter: null
     };
   }
 
@@ -124,116 +129,45 @@ export default class GlobPage extends Page {
   }
 
   /**
-   * Update Files
-   * Selects or unselects files from the store
+   * Process Glob
+   * Simple transformer that reads a glob string into an array of files
    *
    * @method
    * @public
-   * @param {array} updates - Array of updates from the prompt
+   * @param {Stream} stream - Generic transform stream
+   * @param {object} transformAction - Stdin input value
    */
-  updateFiles (updates) {
-    if (!Array.isArray(updates)) return;
+  processGlob (stream, transformAction) {
+    let input, files = [],
+        { type, creator } = transformAction;
 
-    updates.forEach((update) => {
-      if (update.action === "select") {
-        this.dispatch(addFile(update.value));
-      }
-      else {
-        this.dispatch(removeFile(update.value));
-      }
-    });
-  }
+    if (type !== 'string' || creator !== 'prompt') {
+      return stream.push(transformAction);
+    }
 
-  /**
-   * Prompt
-   * Beckons the prompt
-   *
-   * @method
-   * @public
-   */
-  prompt () {
-    let reprompt = () => {
-      this.props.stdout.write(this.renderMenu());
-      this.prompt();
-    };
+    input = transformAction.data;
 
     /**
-     * If files have been found from the glob, lets
+     * If the only input given is an empty response lets go back to
+     * the index.
      */
-    if (this.state.files.length) {
-      this.state.prompt.beckon(this.question())
-        .then(this.processInput.bind(this))
-        .then((results) => {
-          let { selectedItems, queryCount } = results;
-
-          /**
-           * If the only input given is an empty response lets go back to
-           * the index.
-           */
-          if (queryCount === 1 && selectedItems[0].value === null) {
-            return this.navigate('index');
-          }
-
-          this.updateFiles(selectedItems);
-
-          /**
-           * If the only param was a single "*" add the files and navigate
-           * away to the index page
-           */
-          if (queryCount === 1 && selectedItems[0].type === "all") {
-            return this.navigate('index');
-          }
-
-          reprompt();
-        })
-        .catch(Page.NoMatchError, reprompt);
+    if (!input) {
+      this.navigate('index');
+      stream.push(null);
     }
-    else {
-      this.state.prompt.beckon(this.question())
-        .then((answer) => {
-          let files = [];
 
-          /**
-           * If the only input given is an empty response lets go back to
-           * the index.
-           */
-          if (!answer) {
-            return this.navigate('index');
-          }
+    files = this.getFiles(input);
 
-          files = this.getFiles(answer);
-
-          if (!files.length) throw new Error('no_glob_match');
-
-          this.setState({
-            filter: answer,
-            files
-          });
-
-          reprompt();
-        })
-        .catch((e) => {
-          switch (e.message) {
-          case 'no_glob_match':
-            this.props.stdout.write(colors.bold.red('No files found. Try again.\n'));
-            break;
-          }
-          reprompt();
-        });
+    if (!files.length) {
+      return stream.pushError(new Error(`No files matched the glob string "${input}"`));
     }
-  }
 
-  /**
-   * Process Input
-   * Deal with the answer from our prompt
-   *
-   * @method
-   * @public
-   * @param {string} answer - User input value
-   * @returns {promise} Returns a promise to return the result
-   */
-  processInput (answer) {
-    return this.state.menu.find(answer);
+    this.setState({
+      filter: input,
+      files
+    });
+
+    stream.push(null);
   }
 
   /**
@@ -257,17 +191,49 @@ export default class GlobPage extends Page {
     return `Enter glob from ${basedir}`;
   }
 
+  /**
+   * ShowPrompt
+   * Beckons the prompt
+   *
+   * @method
+   * @public
+   */
+  showPrompt () {
+    /**
+     * If files have been found from the glob, lets
+     */
+    if (this.state.files.length) {
+      this.prompt.beckon(this.question())
+        .pipe(new QueriesTransform())
+        .pipe(new MenuTransform({
+          choices: this.menu.options()
+        }))
+        .pipe(new Dispatcher({
+          store: this.props.store
+        }))
+        .then(this.reprompt);
+    }
+    else {
+      this.prompt.beckon(this.question())
+        .pipe(new GenericTransform(this.processGlob.bind(this)))
+        .pipe(new Dispatcher({
+          store: this.props.store 
+        }))
+        .on('finish', this.reprompt);
+    }
+  }
+
   /** RENDER METHODS */
 
   renderMenu () {
     if (!this.state.files.length) return '';
 
-    this.state.menu.setOptions(this.createOptionsFrom(this.state.files));
+    this.menu.setOptions(this.createOptionsFrom(this.state.files));
 
-    return this.state.menu.render();
+    return this.menu.render();
   }
 
   renderPrompt () {
-    return this.prompt.bind(this);
+    return this.showPrompt;
   }
 }

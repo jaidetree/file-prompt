@@ -1,6 +1,7 @@
 import colors from 'chalk';
 import stripAnsi from 'strip-ansi';
-import { addFile, removeFile } from '../actions';
+import { addFile, navigate, removeFile } from '../actions';
+import { MatchError } from '../errors';
 import { Writable } from 'stream';
 
 export default class BaseDispatcher extends Writable {
@@ -9,6 +10,7 @@ export default class BaseDispatcher extends Writable {
   params = {};
   done = null;
   skipThen = false;
+  endAction = null;
   _results = [];
 
   /**
@@ -28,6 +30,10 @@ export default class BaseDispatcher extends Writable {
     // Throw a temper tantrum
     if (!this.store) throw new Error('BaseDispatcher: No store provided');
 
+    this.on('error', (err) => {
+      process.stderr.write((err.stack || err.message) + '\n');
+    });
+
     // First finish listener
     this.once('finish', () => {
       /**
@@ -36,6 +42,11 @@ export default class BaseDispatcher extends Writable {
        */
       if (this.select('currentPage.isNavigating')) {
         this.removeAllListeners('finish');
+      }
+
+      if (this.endAction) {
+        this.endAction();
+        return;
       }
     });
 
@@ -74,10 +85,17 @@ export default class BaseDispatcher extends Writable {
    *
    * @method
    * @param {string} err - Error instance
-   * @returns {boolean} true if success
+   * @returns {boolean} false to tell the router not reprompt
    */
   displayError (err) {
-    process.stderr.write(this.formatError(err.message));
+    let msg = err.message;
+
+    if (err instanceof MatchError) {
+      msg = this.formatError(err.message);
+    }
+
+    process.stderr.write(colors.red.bold(msg) + '\n');
+
     return false;
   }
 
@@ -103,13 +121,11 @@ export default class BaseDispatcher extends Writable {
    * @returns {string} Formatted error message
    */
   formatError (searchFor) {
-    let cleanStr = stripAnsi(searchFor);
+    let cleanStr = stripAnsi(searchFor).trim();
 
-    if (cleanStr) {
-      cleanStr = `(${cleanStr})`;
-    }
+    if (cleanStr) cleanStr = ` (${cleanStr})`;
 
-    return colors.red.bold(`Huh ${cleanStr}?\n`);
+    return `Huh${cleanStr}?`;
   }
 
   /**
@@ -139,7 +155,38 @@ export default class BaseDispatcher extends Writable {
    * @param {object} transformAction.params - Extra transform params & flags
    * @returns {boolean} Returns true if it should skip reprompting
    */
-  route ({ type, data }) {
+  route ({ type, data, params }) {
+    let pageName = this.select('currentPage.name');
+
+    // If not on index page and we get a blank input lets navigate to index
+    if (data.operation === 'blank' && pageName !== 'index') {
+      this.endAction = () => {
+        this.removeAllListeners('finish');
+        this.dispatch(navigate('index'));
+      };
+      return true;
+    }
+
+    /**
+     * If user has selected just a single '*' then select everything then
+     * go back to the index page
+     */
+    else if (
+      data.type
+      && data.type === 'all'
+      && type === 'file'
+      && params.queryCount === 1
+      && pageName !== 'index'
+      && pageName !== 'directories'
+    ) {
+      this.endAction = () => {
+        this.dispatch(navigate('index'));
+        this.removeAllListeners('finish');
+      };
+      this.updateFile(data);
+      return true;
+    }
+
     switch (type) {
       // Show error messages
       case 'error':
@@ -219,6 +266,11 @@ export default class BaseDispatcher extends Writable {
    */
   _write (transformAction, enc, done) {
     this._results.push(transformAction);
+
+    /**
+     * If the route returns true then we want to skip any then callbacks as
+     * that is what is used to reprompt
+     */
     if (this.route(transformAction)) {
       this.skipThen = true;
     }

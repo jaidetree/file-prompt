@@ -20,10 +20,22 @@ export default class GenericTransform extends Transform {
   constructor (transformCallback, options={}) {
     super(Object.assign({}, options, { objectMode: true }));
     this._transformCallback = transformCallback;
-    this.on('error', (err) => {
-      process.stderr.write(err.stack + '\n');
-      process.exit(0);
+  }
+
+  /**
+   * Push Error
+   *
+   * @method
+   * @public
+   * @param {Error} err - Error instance to push down the stream
+   */
+  pushError (err) {
+    this.push({
+      creator: 'generic-transformer',
+      type: 'error',
+      data: err
     });
+    this.push(null);
   }
 
   /**
@@ -38,7 +50,7 @@ export default class GenericTransform extends Transform {
    */
   _transform (chunk, enc, done) {
     try {
-      this.push(this._transformCallback(chunk, this));
+      this._transformCallback(this, chunk);
       done();
     }
     catch (e) {

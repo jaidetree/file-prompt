@@ -1,8 +1,12 @@
 import VerticalMenu from '../vertical_menu';
+import Dispatcher from '../streams/base_dispatcher';
+import GenericTransform from '../streams/generic_transform';
+import MenuTransform from '../streams/menu_transform';
 import minimatch from 'minimatch';
 import Page from '../page';
 import path from 'path';
 import Prompt from '../prompt';
+import QueriesTransform from '../streams/queries_transform';
 import { addFile, removeFile } from '../actions';
 import { execSync } from 'child_process';
 
@@ -43,6 +47,18 @@ export default class ChangedPage extends Page {
    */
   constructor (props) {
     super(props);
+    this.menu = new VerticalMenu({
+      canUnselect: true,
+      acceptsMany: true,
+      stdin: this.props.stdin,
+      stdout: this.props.stdout,
+      app: this.props.app
+    });
+
+    this.prompt = new Prompt({
+      stdin: this.props.stdin,
+      stdout: this.props.stdout
+    });
   }
 
   /**
@@ -55,18 +71,7 @@ export default class ChangedPage extends Page {
    */
   getInitialState () {
     return {
-      files: this.getFiles(this.getGlob()),
-      menu: new VerticalMenu({
-        canUnselect: true,
-        acceptsMany: true,
-        stdin: this.props.stdin,
-        stdout: this.props.stdout,
-        app: this.props.app
-      }),
-      prompt: new Prompt({
-        stdin: this.props.stdin,
-        stdout: this.props.stdout
-      })
+      files: this.getFiles(this.getGlob())
     };
   }
 
@@ -120,87 +125,36 @@ export default class ChangedPage extends Page {
   }
 
   /**
-   * Update Files
-   * Selects or unselects files from the store
-   *
-   * @method
-   * @public
-   * @param {array} updates - Array of updates from the prompt
-   */
-  updateFiles (updates) {
-    if (!Array.isArray(updates)) return;
-
-    updates.forEach((update) => {
-      if (update.action === "select") {
-        this.dispatch(addFile(update.value));
-      }
-      else {
-        this.dispatch(removeFile(update.value));
-      }
-    });
-  }
-
-  /**
-   * Prompt
+   * Show Prompt
    * Beckons the prompt
    *
    * @method
    * @public
+   * @returns {Stream} A duplex stream for processing the found files
    */
-  prompt () {
-    let reprompt = () => {
-      this.props.stdout.write(this.renderMenu());
-      this.prompt();
-    };
+  showPrompt () {
+    return this.prompt.beckon(this.question)
+      .pipe(new GenericTransform((stream, transformAction) => {
+        if (this.menu.options().length) return stream.push(transformAction);
 
-    this.state.prompt.beckon(this.question)
-      .then(this.processInput.bind(this))
-      .then((results) => {
-        let { selectedItems, queryCount } = results;
-
-        /**
-         * If the only input given is an empty response lets go back to
-         * the index.
-         */
-        if (queryCount === 1 && selectedItems[0].value === null) {
-          return this.navigate('index');
-        }
-
-        this.updateFiles(selectedItems);
-
-        /**
-         * If the only param was a single "*" add the files and navigate
-         * away to the index page
-         */
-        if (queryCount === 1 && selectedItems[0].type === "all") {
-          return this.navigate('index');
-        }
-
-        reprompt();
-      })
-      .catch(Page.NoMatchError, reprompt)
-      .catch(Page.SeriousErrors, this.errorHandler);
-  }
-
-  /**
-   * Process Input
-   * Deal with the answer from our prompt
-   *
-   * @method
-   * @public
-   * @param {string} answer - User input value
-   * @returns {promise} Returns a promise to return the result
-   */
-  processInput (answer) {
-    return this.state.menu.find(answer);
+        stream.pushError(new Error('No git tracked files have changed since last commit.'));
+      }))
+      .pipe(new QueriesTransform())
+      .pipe(new MenuTransform({
+        choices: this.menu.options()
+      }))
+      .pipe(new Dispatcher({
+        store: this.props.store
+      }))
+      .then(this.reprompt);
   }
 
   renderMenu () {
-    this.state.menu.setOptions(this.createOptionsFrom(this.state.files));
-    return this.state.menu.render();
+    this.menu.setOptions(this.createOptionsFrom(this.state.files));
+    return this.menu.render();
   }
 
   renderPrompt () {
-    return this.prompt.bind(this);
+    return this.showPrompt;
   }
 }
