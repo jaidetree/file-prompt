@@ -1,6 +1,5 @@
 import colors from 'chalk';
 import Dispatcher from '../streams/base_dispatcher';
-import GenericTransform from '../streams/generic_transform';
 import MenuTransform from '../streams/menu_transform';
 import minimatch from 'minimatch';
 import Page from '../page';
@@ -8,7 +7,6 @@ import path from 'path';
 import Prompt from '../prompt';
 import QueriesTransform from '../streams/queries_transform';
 import VerticalMenu from '../vertical_menu';
-import { addFile, removeFile } from '../actions';
 import { execSync } from 'child_process';
 
 /**
@@ -131,13 +129,12 @@ export default class ChangedPage extends Page {
    *
    * @method
    * @public
-   * @returns {Stream} A duplex stream for processing the found files
+   * @returns {Stream|null} A duplex stream for processing the found files
    */
   showPrompt () {
     if (this.menu.options().length === 0) {
       process.stderr.write(colors.bold.red('No files have been changed since last git commit.\n'));
-      this.navigate('index');
-      return;
+      return this.navigate('index');
     }
 
     return this.prompt.beckon(this.question)

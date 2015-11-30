@@ -49,8 +49,10 @@ export default class MenuTransform extends BaseTransform {
    * @returns {object} Initial param values
    */
   getParams (options) {
+    let canUnselect = options.canSelect;
+
     return {
-      canUnselect: typeof options.canUnselect === 'undefined' ? true : false
+      canUnselect: !!canUnselect || typeof canUnselect === 'undefined'
     };
   }
 

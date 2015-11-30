@@ -1,10 +1,6 @@
 import colors from 'chalk';
 import column from './util/column';
 import Component from './component';
-import Promise from 'bluebird';
-import Query from './query';
-import stripAnsi from 'strip-ansi';
-import { MatchError } from './errors';
 
 const ITEMS_PER_ROW = 4,
       MAX_COLUMN_LENGTH = 20;

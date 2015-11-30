@@ -1,4 +1,3 @@
-import colors from 'chalk';
 import glob from 'glob';
 import Dispatcher from '../streams/base_dispatcher';
 import GenericTransform from '../streams/generic_transform';
@@ -7,7 +6,6 @@ import path from 'path';
 import Prompt from '../prompt';
 import QueriesTransform from '../streams/queries_transform';
 import VerticalMenu from '../vertical_menu';
-import { addFile, removeFile } from '../actions';
 
 /**
  * Menu Options format
@@ -136,6 +134,7 @@ export default class GlobPage extends Page {
    * @public
    * @param {Stream} stream - Generic transform stream
    * @param {object} transformAction - Stdin input value
+   * @returns {*} Returns are used for control flow in this function.
    */
   processGlob (stream, transformAction) {
     let input, files = [],
@@ -217,7 +216,7 @@ export default class GlobPage extends Page {
       this.prompt.beckon(this.question())
         .pipe(new GenericTransform(this.processGlob.bind(this)))
         .pipe(new Dispatcher({
-          store: this.props.store 
+          store: this.props.store
         }))
         .on('finish', this.reprompt);
     }

@@ -191,7 +191,7 @@ export default class DirectoriesPage extends Page {
      * If directory change the transform action so that it does not get
      * selected in the store.
      */
-    if (stats.isDirectory() ) {
+    if (stats.isDirectory()) {
       selectedDir = filepath;
       transformAction.type = 'directory';
     }
@@ -201,8 +201,8 @@ export default class DirectoriesPage extends Page {
      * only value input and not from a multiple item select then we're good.
      */
     if (
-      selectedDir 
-      && params.queryCount === 1 
+      selectedDir
+      && params.queryCount === 1
       && !this.state.targetDir
       && data.type === 'single'
     ) {

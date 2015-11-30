@@ -18,7 +18,7 @@ export default class Page extends Component {
    */
   constructor (props) {
     super(props);
-    bindMethods(this, 
+    bindMethods(this,
       'errorHandler',
       'pipeTo',
       'reprompt',
@@ -134,8 +134,8 @@ export default class Page extends Component {
 
   /**
    * Reprompt
-   * Shows the intro and the menu 
-   * 
+   * Shows the intro and the menu
+   *
    * @method
    * @public
    */

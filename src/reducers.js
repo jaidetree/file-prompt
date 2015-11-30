@@ -86,7 +86,7 @@ function glob (state = '**/*.js', action) {
 
     default:
       return state;
-    }
+  }
 }
 
 const reducers = combineReducers({ config, currentPage, files, glob });
