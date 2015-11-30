@@ -1,9 +1,11 @@
 import glob from 'glob';
-import VerticalMenu from '../vertical_menu';
+import Dispatcher from '../streams/base_dispatcher';
+import MenuTransform from '../streams/menu_transform';
 import Page from '../page';
 import path from 'path';
 import Prompt from '../prompt';
-import { addFile, removeFile } from '../actions';
+import VerticalMenu from '../vertical_menu';
+import QueriesTransform from '../streams/queries_transform';
 
 /**
  * Menu Options format
@@ -42,6 +44,19 @@ export default class FilesPage extends Page {
    */
   constructor (props) {
     super(props);
+    
+    this.menu = new VerticalMenu({
+      canUnselect: true,
+      acceptsMany: true,
+      stdin: this.props.stdin,
+      stdout: this.props.stdout,
+      app: this.props.app
+    });
+
+    this.prompt = new Prompt({
+      stdin: this.props.stdin,
+      stdout: this.props.stdout
+    });
   }
 
   /**
@@ -61,30 +76,6 @@ export default class FilesPage extends Page {
     });
 
     return data;
-  }
-
-  /**
-   * Get Initial State
-   * Initializes this component's state
-   *
-   * @method
-   * @public
-   * @returns {object} Initial state properties
-   */
-  getInitialState () {
-    return {
-      menu: new VerticalMenu({
-        canUnselect: true,
-        acceptsMany: true,
-        stdin: this.props.stdin,
-        stdout: this.props.stdout,
-        app: this.props.app
-      }),
-      prompt: new Prompt({
-        stdin: this.props.stdin,
-        stdout: this.props.stdout
-      })
-    };
   }
 
   /**
@@ -114,25 +105,26 @@ export default class FilesPage extends Page {
       }) || [];
   }
 
-  /**
-   * Update Files
-   * Selects or unselects files from the store
-   *
-   * @method
-   * @public
-   * @param {array} updates - Array of updates from the prompt
-   */
-  updateFiles (updates) {
-    if (!Array.isArray(updates)) return;
+  route (creator, action, data, params) {
+    let { operation, value, type } = data;
 
-    updates.forEach((update) => {
-      if (update.action === "select") {
-        this.dispatch(addFile(update.value));
-      }
-      else {
-        this.dispatch(removeFile(update.value));
-      }
-    });
+    /**
+     * If the only input given is an empty response lets go back to
+     * the index.
+     */
+    if (params.queryCount === 1 && value === null) {
+      this.navigate('index');
+      return true;
+    }
+
+    /**
+     * If the only param was a single "*" add the files and navigate
+     * away to the index page
+     */
+    if (params.queryCount === 1 && type === "all" && operation === 'select') {
+      this.navigate('index');
+      return true;
+    }
   }
 
   /**
@@ -142,38 +134,21 @@ export default class FilesPage extends Page {
    * @method
    * @public
    */
-  prompt () {
-    let reprompt = () => {
-      this.props.stdout.write(this.renderMenu());
-      this.prompt();
-    };
+  showPrompt () {
+    let to = this.pipeTo;
 
-    this.state.prompt.beckon(this.question)
-      .then(this.processInput.bind(this))
-      .then((results) => {
-        let { selectedItems, queryCount } = results;
-
-        /**
-         * If the only input given is an empty response lets go back to
-         * the index.
-         */
-        if (queryCount === 1 && selectedItems[0].value === null) {
-          return this.navigate('index');
-        }
-
-        this.updateFiles(selectedItems);
-
-        /**
-         * If the only param was a single "*" add the files and navigate
-         * away to the index page
-         */
-        if (queryCount === 1 && selectedItems[0].type === "all") {
-          return this.navigate('index');
-        }
-
-        reprompt();
-      })
-      .catch(Page.NoMatchError, reprompt);
+    this.prompt.beckon(this.question)
+      .pipe(to(new QueriesTransform()))
+      .pipe(to(new MenuTransform({
+        choices: this.menu.options()
+      })))
+      .pipe(to(new Dispatcher({
+        store: this.props.store,
+        route: this.route 
+      })))
+      .then(() => {
+        this.reprompt();
+      });
   }
 
   /**
@@ -186,15 +161,15 @@ export default class FilesPage extends Page {
    * @returns {promise} Returns a promise to return the result
    */
   processInput (answer) {
-    return this.state.menu.find(answer);
+    return this.menu.find(answer);
   }
 
   renderMenu () {
-    this.state.menu.setOptions(this.getFiles(this.getGlob()));
-    return this.state.menu.render();
+    this.menu.setOptions(this.getFiles(this.getGlob()));
+    return this.menu.render();
   }
 
   renderPrompt () {
-    return this.prompt.bind(this);
+    return this.showPrompt.bind(this);
   }
 }

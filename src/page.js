@@ -1,5 +1,5 @@
-import colors from 'chalk';
 import Component from './component';
+import bindMethods from './util/bind_methods';
 import { navigate } from './actions';
 
 /**
@@ -9,20 +9,6 @@ import { navigate } from './actions';
  * @class
  */
 export default class Page extends Component {
-
-  /**
-   * No Match Error
-   * Predicate to determine if error is no match action or otherwise
-   *
-   * @method
-   * @public
-   * @param {Errror} e - Error instance to test against
-   * @returns {boolean} true if no match error
-   */
-  static NoMatchError (e) {
-    return e.message === "no_match";
-  }
-
   /**
    * Constructor
    * Initializes the page class
@@ -32,6 +18,13 @@ export default class Page extends Component {
    */
   constructor (props) {
     super(props);
+    bindMethods(this, 
+      'errorHandler',
+      'pipeTo',
+      'reprompt',
+      'route',
+      'showPrompt'
+    );
   }
 
   /**
@@ -77,15 +70,15 @@ export default class Page extends Component {
   }
 
   /**
-   * Display Error
-   * Displays the error message to the user if there is one
+   * Error Handler
+   * Emit an error event on serious errors.
    *
    * @method
-   * @param {Error} e - Error object
+   * @public
+   * @param {Error} e - Error instance thrown or caught
    */
-  displayError (e) {
-    if (e.message === 'no_match') return;
-    process.stderr.write(colors.bold.red(e.stack || e.message) + '\n');
+  errorHandler (e) {
+    this.props.app.emmit('error', e);
   }
 
   /**
@@ -123,6 +116,32 @@ export default class Page extends Component {
    */
   navigate (page, props = {}) {
     this.dispatch(navigate(page, props));
+  }
+
+  /**
+   * Pipe To
+   * Convienence method to restart the prompt as a last step
+   *
+   * @method
+   * @public
+   * @param {Stream} stream - A stream instance to add listeners to
+   * @returns {Stream} The stream with listeners added
+   */
+  pipeTo (stream) {
+    return stream
+      .on('restart', this.reprompt);
+  }
+
+  /**
+   * Reprompt
+   * Shows the intro and the menu 
+   * 
+   * @method
+   * @public
+   */
+  reprompt () {
+    this.renderComponent();
+    Page.display(this);
   }
 
   /**

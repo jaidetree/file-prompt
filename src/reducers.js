@@ -12,11 +12,11 @@ import { ADD_FILE, REMOVE_FILE, NAVIGATE, NAVIGATE_COMPLETE, SET_CONFIG, SET_FIL
  */
 function config (state = {}, action) {
   switch (action.type) {
-  case SET_CONFIG:
-    return Object.assign({}, state, action.config);
+    case SET_CONFIG:
+      return Object.assign({}, state, action.config);
 
-  default:
-    return state;
+    default:
+      return state;
   }
 }
 
@@ -30,16 +30,16 @@ function config (state = {}, action) {
  *                          data to update the state with
  * @returns {object} Updated current page info
  */
-function currentPage (state = { name: 'index', props: {}, is_navigating: false }, action) {
+function currentPage (state = { name: 'index', props: {}, isNavigating: false }, action) {
   switch (action.type) {
-  case NAVIGATE:
-    return { name: action.name, props: action.props, is_navigating: true };
+    case NAVIGATE:
+      return { name: action.name, props: action.props, isNavigating: true };
 
-  case NAVIGATE_COMPLETE:
-    return { name: state.name, props: state.props, is_navigating: false };
+    case NAVIGATE_COMPLETE:
+      return { name: state.name, props: state.props, isNavigating: false };
 
-  default:
-    return state;
+    default:
+      return state;
   }
 }
 
@@ -55,19 +55,19 @@ function files (state = [], action) {
   let newState = state.slice();
 
   switch (action.type) {
-  case ADD_FILE:
-    if (state.indexOf(action.file) > -1) return state;
+    case ADD_FILE:
+      if (state.indexOf(action.file) > -1) return state;
 
-    return state.concat([action.file]);
+      return state.concat([action.file]);
 
-  case REMOVE_FILE:
-    if (state.indexOf(action.file) === -1) return state;
-    newState.splice(state.indexOf(action.file), 1);
+    case REMOVE_FILE:
+      if (state.indexOf(action.file) === -1) return state;
+      newState.splice(state.indexOf(action.file), 1);
 
-    return newState;
+      return newState;
 
-  default:
-    return state;
+    default:
+      return state;
   }
 }
 
@@ -81,12 +81,12 @@ function files (state = [], action) {
  */
 function glob (state = '**/*.js', action) {
   switch (action.type) {
-  case SET_FILTER:
-    return action.glob;
+    case SET_FILTER:
+      return action.glob;
 
-  default:
-    return state;
-  }
+    default:
+      return state;
+    }
 }
 
 const reducers = combineReducers({ config, currentPage, files, glob });

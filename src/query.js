@@ -85,7 +85,7 @@ export default class Query {
    * @returns {boolean} True if query is a valid string
    */
   static isValid (str) {
-    return typeof str === 'string' && !!str.trim();
+    return typeof str === 'string' && str.trim().length > 0;
   }
 
   /**

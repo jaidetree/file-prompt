@@ -161,6 +161,7 @@
       "allowArrowFunctions": true
     }],
     "indent": [2, 2, { // ............................... Specify tab or space width for your code (fixable)
+      "SwitchCase": 1,
       "VariableDeclarator": {
         "let": 2,
         "var": 2,

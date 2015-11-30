@@ -1,7 +1,6 @@
 /* eslint no-param-reassign: 0  */
-// import readline from 'readline';
 import colors from 'chalk';
-import Promise from 'bluebird';
+import StdinReader from './streams/stdin_reader';
 
 /**
  * Prompt
@@ -52,12 +51,10 @@ export default class Prompt {
    * @method
    * @public
    * @param {string} question - The question to beckon
-   * @returns {Promise} - Returns an ES6 promise object
+   * @returns {stream.Readable} - Returns a readable stream
    */
   beckon (question) {
-    if (question) {
-      this.text = question;
-    }
+    if (question) this.text = question;
 
     // Set the encoding to support more characters from input
     this.options.stdin.setEncoding('utf8');
@@ -65,29 +62,7 @@ export default class Prompt {
     // Beckon the question!
     this.options.stdout.write(this.formatText() + this.formatPrompt());
 
-    // Create our promise
-    return new Promise((resolve, reject) => {
-      let readable = () => {
-        let chunk = this.options.stdin.read();
-
-        if (chunk !== null) {
-          this.options.stdin.removeAllListeners('readable');
-          resolve(chunk.toString().trim());
-        }
-      };
-
-      // Try asking a question with the readline interface
-      try {
-        this.options.stdin.removeAllListeners('readable');
-        this.options.stdin.on('readable', readable);
-      }
-      catch (e) {
-        // Close the interface
-        this.close();
-        this.options.stdout.write(e);
-        reject(e);
-      }
-    });
+    return new StdinReader(this.options);
   }
 
   /**

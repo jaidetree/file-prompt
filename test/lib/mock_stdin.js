@@ -32,10 +32,7 @@ class MockStdin extends Socket {
     let result = super.on(...args);
 
     if (args[0] === 'readable') {
-      // this.readable = true;
-      // console.log(this._readableState);
-      this._readableState.ended = false;
-      this._readableState.endEmitted = false;
+      this.read(0);
       this.emit('readable');
     }
 

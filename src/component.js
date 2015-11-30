@@ -52,14 +52,14 @@ function write (content, component) {
 function writeArray (content, component) {
   for (let element of content) {
     switch (typeof element) {
-    case 'string':
-      write(element, component);
-      break;
+      case 'string':
+        write(element, component);
+        break;
 
-    case 'function':
-      // write('\n');
-      element();
-      break;
+      case 'function':
+        // write('\n');
+        element();
+        break;
     }
   }
 }

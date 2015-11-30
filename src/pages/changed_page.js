@@ -178,7 +178,8 @@ export default class ChangedPage extends Page {
 
         reprompt();
       })
-      .catch(Page.NoMatchError, reprompt);
+      .catch(Page.NoMatchError, reprompt)
+      .catch(Page.SeriousErrors, this.errorHandler);
   }
 
   /**

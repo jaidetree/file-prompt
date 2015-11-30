@@ -1,9 +1,12 @@
 import colors from 'chalk';
 import column from '../util/column';
+import Dispatcher from '../streams/base_dispatcher';
 import Menu from '../menu';
+import MenuTransform from '../streams/menu_transform';
 import Page from '../page';
 import path from 'path';
 import Prompt from '../prompt';
+import QueriesTransform from '../streams/queries_transform';
 
 const MENU_OPTIONS = [{
         id: 1,
@@ -67,65 +70,18 @@ export default class IndexPage extends Page {
    */
   constructor (props) {
     super(props);
-  }
 
-  getInitialState () {
-    return {
-      prompt: new Prompt({
-        stdin: this.props.stdin,
-        stdout: this.props.stdout
-      }),
-      menu: new Menu({
-        options: MENU_OPTIONS,
-        stdin: this.props.stdin,
-        stdout: this.props.stdout,
-        app: this.props.app
-      })
-    };
-  }
+    this.prompt = new Prompt({
+      stdin: this.props.stdin,
+      stdout: this.props.stdout
+    });
 
-  /**
-   * Prompt
-   * Beckons the prompt
-   *
-   * @method
-   * @public
-   * @returns {Promise} Returns a promise object chained to the prompt
-   */
-  prompt () {
-    let reprompt = () => {
-      this.props.stdout.write(this.renderIntro());
-      this.props.stdout.write(this.renderMenu());
-      this.prompt();
-    };
-
-    return this.state.prompt.beckon(this.question)
-      .then(this.processInput.bind(this))
-      .then((results) => {
-        let item = results.selectedItems[0];
-
-        switch (item.value) {
-        case 'quit':
-          this.quit();
-          break;
-
-        case 'help':
-          this.showHelp();
-          reprompt();
-          break;
-
-        case null:
-          reprompt();
-          break;
-
-        default:
-          this.navigate(item.value);
-          break;
-        }
-
-        return results;
-      })
-      .catch(Page.NoMatchError, reprompt);
+    this.menu = new Menu({
+      options: MENU_OPTIONS,
+      stdin: this.props.stdin,
+      stdout: this.props.stdout,
+      app: this.props.app
+    });
   }
 
   /**
@@ -138,7 +94,7 @@ export default class IndexPage extends Page {
    * @returns {promise} Returns a promise to return the result
    */
   processInput (answer) {
-    return this.state.menu.find(answer, (queries) => queries.slice(0, 1));
+    return this.menu.find(answer, (queries) => queries.slice(0, 1));
   }
 
   /**
@@ -150,6 +106,27 @@ export default class IndexPage extends Page {
       this.props.app.emit('complete', this.select('files'));
     }
     this.props.stdin.pause();
+  }
+
+  route (creator, type, data) {
+    let { value } = data;
+
+    switch (value) {
+      case null:
+        return false;
+
+      case 'quit':
+        this.quit();
+        return true;
+
+      case 'help':
+        this.showHelp();
+        return false;
+
+      default:
+        this.navigate(value);
+        return true;
+    }
   }
 
   /**
@@ -174,11 +151,37 @@ export default class IndexPage extends Page {
       if (help.hasOwnProperty(name)) {
         let content = help[name];
 
-        text += `${column(name, MAX_HELP_WIDTH)} - ${content}\n`;
+        text += `  ${column(name, MAX_HELP_WIDTH)} - ${content}\n`;
       }
     }
 
     this.props.stdout.write(colors.bold.red(text));
+  }
+
+  /**
+   * Show Prompt
+   * Beckons the prompt
+   *
+   * @method
+   * @public
+   * @returns {Promise} Returns a promise object chained to the prompt
+   */
+  showPrompt () {
+    let to = this.pipeTo;
+
+    return this.prompt.beckon(this.question)
+      .pipe(to(new QueriesTransform({
+        maxQueries: 1
+      })))
+      .pipe(to(new MenuTransform({
+        choices: this.menu.options(),
+        canUnselect: false
+      })))
+      .pipe(to(new Dispatcher({
+        store: this.props.store,
+        route: this.route
+      })))
+      .then(this.reprompt);
   }
 
   /**
@@ -217,10 +220,10 @@ export default class IndexPage extends Page {
   }
 
   renderPrompt () {
-    return this.prompt.bind(this);
+    return this.showPrompt;
   }
 
   renderMenu () {
-    return this.state.menu.render() + '\n';
+    return this.menu.render() + '\n';
   }
 }

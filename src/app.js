@@ -75,7 +75,8 @@ export default class App extends Component {
       glob: this.props.glob,
       currentPage: {
         name: 'index',
-        props: {}
+        props: {},
+        isNavigating: false
       }
     });
   }
@@ -140,7 +141,7 @@ export default class App extends Component {
     this.unsubscribe = this.store.subscribe(() => {
       let currentPage = selectCurrentPage(this.store);
 
-      if (currentPage.is_navigating) {
+      if (currentPage.isNavigating) {
         this.setState({
           pageName: currentPage.name,
           pageProps: currentPage.props
