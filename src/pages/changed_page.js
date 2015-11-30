@@ -1,4 +1,4 @@
-import VerticalMenu from '../vertical_menu';
+import colors from 'chalk';
 import Dispatcher from '../streams/base_dispatcher';
 import GenericTransform from '../streams/generic_transform';
 import MenuTransform from '../streams/menu_transform';
@@ -7,6 +7,7 @@ import Page from '../page';
 import path from 'path';
 import Prompt from '../prompt';
 import QueriesTransform from '../streams/queries_transform';
+import VerticalMenu from '../vertical_menu';
 import { addFile, removeFile } from '../actions';
 import { execSync } from 'child_process';
 
@@ -133,12 +134,12 @@ export default class ChangedPage extends Page {
    * @returns {Stream} A duplex stream for processing the found files
    */
   showPrompt () {
-    return this.prompt.beckon(this.question)
-      .pipe(new GenericTransform((stream, transformAction) => {
-        if (this.menu.options().length) return stream.push(transformAction);
+    if (this.menu.options().length === 0) {
+      process.stderr.write(colors.bold.red('No files have been changed since last git commit.'));
+      this.navigate('index');
+    }
 
-        stream.pushError(new Error('No git tracked files have changed since last commit.'));
-      }))
+    return this.prompt.beckon(this.question)
       .pipe(new QueriesTransform())
       .pipe(new MenuTransform({
         choices: this.menu.options()
