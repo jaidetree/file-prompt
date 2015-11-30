@@ -137,6 +137,7 @@ export default class ChangedPage extends Page {
     if (this.menu.options().length === 0) {
       process.stderr.write(colors.bold.red('No files have been changed since last git commit.\n'));
       this.navigate('index');
+      return;
     }
 
     return this.prompt.beckon(this.question)
