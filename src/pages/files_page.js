@@ -1,4 +1,4 @@
-import glob from 'glob';
+import glob from 'glob-all';
 import Dispatcher from '../streams/base_dispatcher';
 import MenuTransform from '../streams/menu_transform';
 import Page from '../page';
@@ -60,25 +60,6 @@ export default class FilesPage extends Page {
   }
 
   /**
-   * Get Default Props
-   * Returns the default properties for this component. Can be overridden
-   * by a subclass
-   *
-   * @method
-   * @privae
-   * @returns {object} Default FilesPage props
-   */
-  getDefaultProps () {
-    let data = super.getDefaultProps();
-
-    Object.assign(data, {
-      glob: '**/*.js'
-    });
-
-    return data;
-  }
-
-  /**
    * Get Files
    * Returns an array of files to select
    *
@@ -89,9 +70,18 @@ export default class FilesPage extends Page {
    */
   getFiles (pattern) {
     let basedir = this.getBasedir(),
-        selectedFiles = this.select('files');
+        selectedFiles = this.select('files'),
+        globs = pattern;
 
-    return glob.sync(path.join(basedir, pattern), { cwd: process.cwd() })
+    // Make sure we have an array of globs
+    if (!Array.isArray(globs)) globs = [globs];
+
+    // Prepend the basedir to each glob
+    globs = globs.map((globStr) => {
+      return path.join(basedir, globStr);
+    });
+
+    return glob.sync(globs, { cwd: process.cwd() })
       .map((filename, i) => {
         let label = path.relative(basedir, filename);
 

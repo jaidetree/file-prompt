@@ -7,7 +7,7 @@ import App from './app';
  *
  * @param {object} options - Initial options
  * @param {string} options.base - Base directory to search in
- * @param {string} options.filter - Glob filter for files and git diff files
+ * @param {string} options.glob - Glob filter for files and git diff files
  * @returns {Promise} A promise when files have been selected or rejected on
  *                    error.
  */

@@ -12,7 +12,7 @@ import watch from 'gulp-watch';
 import minimist from 'minimist';
 
 // Libraries
-import log from 'gutil-waterlog';
+import log from 'liquidlog';
 import tap from '../lib/tap';
 
 // Config

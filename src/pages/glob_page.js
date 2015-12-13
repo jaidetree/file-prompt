@@ -1,4 +1,4 @@
-import glob from 'glob';
+import glob from 'glob-all';
 import Dispatcher from '../streams/base_dispatcher';
 import GenericTransform from '../streams/generic_transform';
 import MenuTransform from '../streams/menu_transform'; import Page from '../page';

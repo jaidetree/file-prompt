@@ -7,7 +7,7 @@
  * gulp clean
 */
 import gulp from 'gulp';
-import log from 'gutil-waterlog';
+import log from 'liquidlog';
 import minimist from 'minimist';
 import mocha from 'gulp-mocha';
 import plumber from 'gulp-plumber';

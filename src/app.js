@@ -75,7 +75,9 @@ export default class App extends Component {
       glob: this.props.glob,
       currentPage: {
         name: 'index',
-        props: {},
+        props: {
+          glob: this.props.glob
+        },
         isNavigating: false
       }
     });

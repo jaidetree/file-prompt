@@ -3,7 +3,7 @@
  */
 import glob from 'glob';
 import path from 'path';
-import log from 'gutil-waterlog';
+import log from 'liquidlog';
 
 let files = [],
     tasks = {},

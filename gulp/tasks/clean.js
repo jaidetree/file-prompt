@@ -8,7 +8,7 @@
 import gulp from 'gulp';
 import del from 'del';
 import path from 'path';
-import log from 'gutil-waterlog';
+import log from 'liquidlog';
 import project from '../config/project';
 
 let paths = project.paths;

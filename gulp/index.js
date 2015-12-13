@@ -1,7 +1,7 @@
 /* eslint no-console: 0 */
 import gulp from 'gulp';
 import { colors } from 'gulp-util';
-import log from 'gutil-waterlog';
+import log from 'liquidlog';
 
 // Load all of our tasks -- in the future we might be able to make it
 // more intelligent but it is intended to work this way
