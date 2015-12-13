@@ -186,9 +186,7 @@ export default class BaseTransform extends Transform {
   _transform (chunk, enc, done) {
     try {
       // Filter the chunk and see if we should be transforming it at all
-      if (!this.filterData(this.filters, chunk)) {
-        return done(null, chunk);
-      }
+      if (!this.filterData(this.filters, chunk)) return done(null, chunk);
       this.transform(chunk);
       return done();
     }

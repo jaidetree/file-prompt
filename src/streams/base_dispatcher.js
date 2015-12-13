@@ -271,9 +271,7 @@ export default class BaseDispatcher extends Writable {
      * If the route returns true then we want to skip any then callbacks as
      * that is what is used to reprompt
      */
-    if (this.route(transformAction)) {
-      this.skipThen = true;
-    }
+    if (this.route(transformAction)) this.skipThen = true;
     this.done = done;
 
     return this.finish();

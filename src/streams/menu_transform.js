@@ -228,7 +228,5 @@ export default class MenuTransform extends BaseTransform {
           params
         });
       });
-
-    // this.finish();
   }
 }

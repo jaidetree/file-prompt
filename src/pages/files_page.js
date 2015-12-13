@@ -88,7 +88,7 @@ export default class FilesPage extends Page {
         return {
           id: i + 1,
           name: label,
-          value: filename,
+          value: path.resolve(process.cwd(), filename),
           isSelected: selectedFiles.indexOf(filename) > -1,
           label
         };
