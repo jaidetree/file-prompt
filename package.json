@@ -1,6 +1,6 @@
 {
   "name": "file-prompt",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "description": "An interactive prompt for selecting files from a directory.",
   "main": "index.js",
   "scripts": {
