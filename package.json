@@ -34,13 +34,13 @@
     "chalk": "^1.1.1",
     "eslint-plugin-react": ">= 3.10.0 < 4",
     "glob-all": "^3.0.1",
-    "gulp": ">= 3.9.0 < 4",
     "minimatch": "^3.0.0",
     "redux": "^3.0.4",
     "strip-ansi": "^3.0.0",
     "underscore": "^1.8.3"
   },
   "devDependencies": {
+    "gulp": ">= 3.9.0 < 4",
     "minimist": "^1.2.0"
   }
 }
