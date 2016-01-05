@@ -3,12 +3,12 @@ import fs from 'fs';
 import Dispatcher from '../streams/base_dispatcher';
 import GenericTransform from '../streams/generic_transform';
 import MenuTransform from '../streams/menu_transform';
+import minimatch from 'minimatch-all';
 import Page from '../page';
 import path from 'path';
 import Prompt from '../prompt';
 import QueriesTransform from '../streams/queries_transform';
 import VerticalMenu from '../vertical_menu';
-import { Minimatch } from 'minimatch';
 
 /**
  * Menu Options format
@@ -90,8 +90,10 @@ export default class DirectoriesPage extends Page {
         isBaseDir = dir === configBasedir,
         selectedFiles = this.select('files'),
         files = [],
-        directories = [],
-        mm = new Minimatch(glob);
+        directories = [];
+
+    // Force glob to be an array
+    if (!Array.isArray(glob)) glob = [glob];
 
     files = fs.readdirSync(dir);
 
@@ -109,7 +111,7 @@ export default class DirectoriesPage extends Page {
           return true;
         }
 
-        return mm.match(filepath);
+        return minimatch(filepath, glob);
       })
       // Second filter files against
       .map((filepath, i) => {

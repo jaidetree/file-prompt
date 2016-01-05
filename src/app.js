@@ -1,6 +1,6 @@
 import Component from './component';
 import fs from 'fs';
-import minimatch from 'minimatch';
+import minimatch from 'minimatch-all';
 import path from 'path';
 import reducers from './reducers';
 import { createStore } from 'redux';
@@ -15,12 +15,15 @@ import { navigateComplete } from './actions';
  * @returns {object} A hash of indexes to their imported file class
  */
 function readDir (dir, glob) {
-  let files = {},
-      mm = new minimatch.Minimatch(glob);
+  let files = {};
+
+  if (!Array.isArray(glob)) glob = [glob];
 
   fs.readdirSync(dir)
     // Filter out the ones that don't match the glob
-    .filter(mm.match, mm)
+    .filter((file) => {
+      return minimatch(file, glob);
+    })
     // For each match lets append it to our files object
     .forEach((file) => {
       let name = path.basename(file, '_page.js');

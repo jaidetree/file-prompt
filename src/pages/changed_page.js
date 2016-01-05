@@ -1,7 +1,7 @@
 import colors from 'chalk';
 import Dispatcher from '../streams/base_dispatcher';
 import MenuTransform from '../streams/menu_transform';
-import minimatch from 'minimatch';
+import minimatch from 'minimatch-all';
 import Page from '../page';
 import path from 'path';
 import Prompt from '../prompt';
@@ -110,8 +110,9 @@ export default class ChangedPage extends Page {
   getFiles (pattern) {
     let basedir = this.getBasedir(),
         output = execSync('git diff --name-only'),
-        files = output.toString().split('\n'),
-        mm = new minimatch.Minimatch(pattern);
+        files = output.toString().split('\n');
+
+    if (!Array.isArray(pattern)) pattern = [pattern];
 
     if (!files.length) return [];
 
@@ -119,7 +120,7 @@ export default class ChangedPage extends Page {
       return path.resolve(filename);
     })
     .filter((filename) => {
-      return mm.match(filename) && filename.indexOf(basedir) > -1;
+      return minimatch(filename, pattern) && filename.indexOf(basedir) > -1;
     });
   }
 
