@@ -19,6 +19,7 @@ let paths = {};
 
 paths = {};
 paths.src = project.to('test', '*.js');
+paths.dir = project.to('test');
 paths.watch = [
   project.paths.js.src,
   paths.src
@@ -26,12 +27,17 @@ paths.watch = [
 
 /**
  * Reusable test
+ *
+ * @param {vinyl} [file] - A vinyl file
  * @returns {stream} Resulting transform stream
  */
-function test () {
-  let args = minimist(process.argv.slice(2));
+function test (file) {
+  let args = minimist(process.argv.slice(2)),
+      src = paths.src;
 
-  return gulp.src(paths.src, { read: false })
+  if (file) src = project.join(paths.dir, file.basename);
+
+  return gulp.src(src, { read: false })
     .pipe(plumber())
     .pipe(mocha(args));
 }
@@ -54,7 +60,7 @@ gulp.task('watch:test', () => {
       .text('From cache')
       .send();
 
-    return test();
+    return test(file);
   });
 });
 

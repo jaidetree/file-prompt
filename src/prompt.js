@@ -17,7 +17,7 @@ export default class Prompt {
   text = "";
   options = {
     stdin: process.stdin,
-    stdout: process.stdout
+    stdout: process.stdout,
   };
 
   /**

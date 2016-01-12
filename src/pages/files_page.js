@@ -1,5 +1,5 @@
 import glob from 'glob-all';
-import Dispatcher from '../streams/base_dispatcher';
+import Dispatcher from '../streams/dispatcher';
 import MenuTransform from '../streams/menu_transform';
 import Page from '../page';
 import path from 'path';

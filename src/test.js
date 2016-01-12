@@ -10,5 +10,7 @@ fileprompt()
 
   /** Errors ocurred */
   .catch((err) => {
-    console.error(err);
+    console.log('\n');
+    console.error(err.stack || err.message || err);
+    console.log('\n');
   });

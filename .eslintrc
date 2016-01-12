@@ -15,9 +15,9 @@
     // RECOMMENDED
     // -----------------------------------------------------------------------
 
-    "comma-dangle": 2, // ............................... Disallow or enforce trailing commas (recommended)
+    "comma-dangle": [2, "always-multiline"], // ......... Disallow or enforce trailing commas (recommended)
     "no-cond-assign": 2, // ............................. Disallow assignment in conditional expressions (recommended)
-    "no-console": 1, // ................................. Disallow use of console in the node environment (recommended
+    "no-console": 0, // ................................. Disallow use of console in the node environment (recommended
     "no-constant-condition": 2, // ...................... Disallow use of constant expressions in conditions (recommended)
     "no-control-regex": 2, // ........................... Disallow control characters in regular expressions (recommended)
     "no-debugger": 2,  // ............................... Disallow use of debugger (recommended)
@@ -95,7 +95,7 @@
     "no-new": 1, // ..................................... Disallow use of the new operator when not part of an assignment or comparison
     "no-octal-escape": 1, // ............................ Disallow use of octal escape sequences in string literals, such as var foo = "Copyright \251";
     "no-octal": 1, // ................................... Disallow use of octal literals (recommended)
-    "no-param-reassign": 1, // .......................... Disallow reassignment of function parameters
+    "no-param-reassign": 0, // .......................... Disallow reassignment of function parameters
     "no-process-env": 1, // ............................. Disallow use of process.env
     "no-proto": 1, // ................................... Disallow usage of __proto__ property
     "no-redeclare": 2, // ............................... Disallow declaring the same variable more than once (recommended)

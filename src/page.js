@@ -1,5 +1,7 @@
 import Component from './component';
 import bindMethods from './util/bind_methods';
+import splicer from 'labeled-stream-splicer';
+
 import { navigate } from './actions';
 
 /**
@@ -20,7 +22,6 @@ export default class Page extends Component {
     super(props);
     bindMethods(this,
       'errorHandler',
-      'pipeTo',
       'reprompt',
       'route',
       'showPrompt'
@@ -38,7 +39,7 @@ export default class Page extends Component {
   getDefaultProps () {
     return {
       stdin: process.stdin,
-      stdout: process.stdout
+      stdout: process.stdout,
     };
   }
 
@@ -52,8 +53,51 @@ export default class Page extends Component {
    */
   getInitialState () {
     return {
-      selected: []
+      selected: [],
     };
+  }
+
+  /**
+   * Create Pipeline
+   * Creates the labeled stream splicer pipeline
+   *
+   * @method
+   * @public
+   * @returns {splicer} A labeled stream splicer pipeline
+   */
+  createPipeline () {
+    let workflow = this.workflow(),
+        streams = [],
+        to = (stream) => {
+          return stream
+            .on('error', (err) => console.error(err.stack || err.message || err));
+        };
+
+    Object.keys(workflow).forEach((name) => {
+      streams.push(
+
+        /** The name from which to get the stream with */
+        name,
+
+        /** Wrap each stream with an error and restart handler */
+        [to(workflow[name])],
+      );
+    });
+
+    return splicer.obj(streams);
+  }
+
+  /**
+   * Display Error
+   * Shows the error on our stdout prop for the user
+   *
+   * @method
+   * @public
+   * @param {string} err - Erro string to display
+   */
+  displayError (err) {
+    this.props.stdout.write(err);
+    this.reprompt();
   }
 
   /**
@@ -67,18 +111,6 @@ export default class Page extends Component {
    */
   dispatch (action) {
     return this.props.store.dispatch(action);
-  }
-
-  /**
-   * Error Handler
-   * Emit an error event on serious errors.
-   *
-   * @method
-   * @public
-   * @param {Error} e - Error instance thrown or caught
-   */
-  errorHandler (e) {
-    this.props.app.emmit('error', e);
   }
 
   /**
@@ -119,20 +151,6 @@ export default class Page extends Component {
   }
 
   /**
-   * Pipe To
-   * Convienence method to restart the prompt as a last step
-   *
-   * @method
-   * @public
-   * @param {Stream} stream - A stream instance to add listeners to
-   * @returns {Stream} The stream with listeners added
-   */
-  pipeTo (stream) {
-    return stream
-      .on('restart', this.reprompt);
-  }
-
-  /**
    * Reprompt
    * Shows the intro and the menu
    *
@@ -140,6 +158,7 @@ export default class Page extends Component {
    * @public
    */
   reprompt () {
+    this.pipeline = this.createPipeline();
     this.renderComponent();
     Page.display(this);
   }

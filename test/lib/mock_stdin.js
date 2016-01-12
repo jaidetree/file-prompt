@@ -43,6 +43,13 @@ class MockStdin extends Socket {
     this.isRaw = mode;
   }
 
+  reset () {
+    let state = this._readableState;
+
+    state.ended = false;
+    state.endEmitted = false;
+  }
+
   _read () {
     if (this.cursor >= this.contents.length) {
       this.push(null);
@@ -51,6 +58,10 @@ class MockStdin extends Socket {
     this.push(new Buffer(this.contents[this.cursor] + '\n', 'ascii').toString());
     this.cursor += 1;
     this.push(null);
+
+    process.nextTick(() => {
+      this.reset();
+    });
   }
 }
 

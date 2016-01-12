@@ -18,10 +18,11 @@ export default class MenuTransform extends BaseTransform {
   name = 'menu';
   filters = {
     creator: 'queries',
-    type: 'query'
+    type: 'query',
   };
   choices = [];
   ids = [];
+  menu = null;
 
   /**
    * Constructor
@@ -33,10 +34,7 @@ export default class MenuTransform extends BaseTransform {
   constructor (options={}) {
     super(options);
 
-    if (options.choices) {
-      this.choices = options.choices;
-      this.ids = this.choices.map((opt) => opt.id);
-    }
+    if (options.menu) this.menu = options.menu;
   }
 
   /**
@@ -49,74 +47,13 @@ export default class MenuTransform extends BaseTransform {
    * @returns {object} Initial param values
    */
   getParams (options) {
-    let canUnselect = options.canSelect;
+    let canUnselect = options.canUnselect;
+
+    canUnselect = typeof canUnselect === 'undefined' ? true : canUnselect;
 
     return {
-      canUnselect: !!canUnselect || typeof canUnselect === 'undefined'
+      canUnselect,
     };
-  }
-
-  /**
-   * Filter
-   * Iterates through each chocie and returns a new array
-   *
-   * @method
-   * @public
-   * @param {function} callback - Callback to iterate on each item
-   * @param {object} [context] - Optional context to send with callback
-   * @returns {array} Filtered result arrray
-   */
-  filter (callback, context=this) {
-    return this.choices.filter(callback, context);
-  }
-
-  /**
-   * Get Choice By Id
-   * Returns a choice by the given id
-   *
-   * @method
-   * @public
-   * @param {int} id - Id to search through choices for
-   * @returns {object} Choice by that given id
-   */
-  getChoiceById (id) {
-    /**
-     * Throw a serious error if this fails, it is only used internally
-     */
-    if (!this.hasId(id)) throw new Error(`MenuTransform.getChoiceById: Could not find chocie by id "${id}"`);
-    return this.choices[this.ids.indexOf(id)];
-  }
-
-  /**
-   * Get Choice By Name
-   * Searches through all our options looking for
-   *
-   * @param {Query} query - Query to search for
-   * @returns {array} Array of matching ids
-   */
-  getChoiceByName (query) {
-    let results = this.filter((option) => query.isStartOf(option.name));
-
-    /**
-     * If the results are 0 or more than 1 return an empty array because
-     * name searches need to match only 1 item to be valid.
-     */
-    if (results.length !== 1) return [];
-
-    return results.map((option) => option.id);
-  }
-
-  /**
-   * Has Id
-   * Returns boolean if a choice by that id exists.
-   *
-   * @method
-   * @public
-   * @param {int} id - Id to look for
-   * @returns {boolean} True if id was found
-   */
-  hasId (id) {
-    return this.ids.indexOf(Number(id)) > -1;
   }
 
   /**
@@ -132,18 +69,6 @@ export default class MenuTransform extends BaseTransform {
    */
   isSelectOnly (action) {
     return action === 'unselect' && !this.params.canUnselect;
-  }
-
-  /**
-   * Map
-   * Iterates through each choice and returns a new array of the same size
-   *
-   * @param {function} callback - Callback to iterate on each item
-   * @param {object} [context] - Optional context to send with callback
-   * @returns {array} Mapped result arrray
-   */
-  map (callback, context=this) {
-    return this.choices.map(callback, context);
   }
 
   /**
@@ -167,7 +92,7 @@ export default class MenuTransform extends BaseTransform {
      * around.
      */
     Object.assign(params, {
-      canUnselect: this.params.canUnselect
+      canUnselect: this.params.canUnselect,
     });
 
     // Determine what to do by the type of action the query is requesting
@@ -176,7 +101,7 @@ export default class MenuTransform extends BaseTransform {
       // User has input a '*' so select all the things
       case 'all':
         if (params.maxQueries > 0) return this.matchError(query);
-        data = this.ids.slice();
+        data = this.menu.ids().slice();
         break;
 
       // User has input a range like 1-10 so select those items.
@@ -184,24 +109,24 @@ export default class MenuTransform extends BaseTransform {
         if (params.maxQueries > 0) return this.matchError(query);
 
         // Range should be valid choice id numbers
-        if (!this.hasId(value.min) || !this.hasId(value.max)) {
+        if (!this.menu.hasId(value.min) || !this.menu.hasId(value.max)) {
           return this.matchError(query);
         }
 
         // Slice the range from the list of ids
-        data = range(this.ids, value.min, value.max);
+        data = range(this.menu.ids(), value.min, value.max);
         break;
 
       // Case is id
       case 'id':
-        if (!this.hasId(value)) return this.matchError(query);
+        if (!this.menu.hasId(value)) return this.matchError(query);
         data = [value];
         type = 'single';
         break;
 
       // Query is a string type so try to find a match by the name
       case 'string':
-        data = this.getChoiceByName(query);
+        data = this.menu.getChoiceByName(query);
         type = 'single';
         break;
     }
@@ -211,21 +136,21 @@ export default class MenuTransform extends BaseTransform {
 
     data
       // Double check to make sure we are only working with ids that exist
-      .filter(this.hasId, this)
+      .filter(this.menu.hasId, this.menu)
       // Convert the array to a list of choices
-      .map(this.getChoiceById, this)
+      .map(this.menu.getChoiceById, this.menu)
       // for each choice push an action
       .forEach(({ value: choice }) => {
         let isPath = choice.slice(0, 1) === path.sep;
 
         this.pushAction({
-          type: isPath ? 'file' : 'action',
+          type: isPath ? 'file' : 'page',
           data: {
             operation: action,
             value: choice,
-            type
+            type,
           },
-          params
+          params,
         });
       });
   }

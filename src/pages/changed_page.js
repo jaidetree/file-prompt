@@ -1,5 +1,5 @@
 import colors from 'chalk';
-import Dispatcher from '../streams/base_dispatcher';
+import Dispatcher from '../streams/dispatcher';
 import MenuTransform from '../streams/menu_transform';
 import minimatch from 'minimatch-all';
 import Page from '../page';

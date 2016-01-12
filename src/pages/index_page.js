@@ -1,6 +1,7 @@
 import colors from 'chalk';
 import column from '../util/column';
-import Dispatcher from '../streams/base_dispatcher';
+import Dispatcher from '../streams/dispatcher';
+import DispatchTransform from '../streams/dispatch_transform';
 import Menu from '../menu';
 import MenuTransform from '../streams/menu_transform';
 import Page from '../page';
@@ -12,37 +13,37 @@ const MENU_OPTIONS = [{
         id: 1,
         label: 'directories',
         name: 'directories',
-        value: 'directories'
+        value: 'directories',
       },
       {
         id: 2,
         label: 'files',
         name: 'files',
-        value: 'files'
+        value: 'files',
       },
       {
         id: 3,
         label: 'glob',
         name: 'glob',
-        value: 'glob'
+        value: 'glob',
       },
       {
         id: 4,
         label: 'changed',
         name: 'changed',
-        value: 'changed'
+        value: 'changed',
       },
       {
         id: 5,
         label: 'help',
         name: 'help',
-        value: 'help'
+        value: 'help',
       },
       {
         id: 6,
         label: 'quit',
         name: 'quit',
-        value: 'quit'
+        value: 'quit',
       }],
       MAX_LABEL_WIDTH = 6,
       MAX_HELP_WIDTH = 11;
@@ -73,59 +74,69 @@ export default class IndexPage extends Page {
 
     this.prompt = new Prompt({
       stdin: this.props.stdin,
-      stdout: this.props.stdout
+      stdout: this.props.stdout,
     });
 
     this.menu = new Menu({
       options: MENU_OPTIONS,
       stdin: this.props.stdin,
       stdout: this.props.stdout,
-      app: this.props.app
+      app: this.props.app,
     });
-  }
 
-  /**
-   * Process Input
-   * Deal with the answer from our prompt
-   *
-   * @method
-   * @public
-   * @param {string} answer - User input value
-   * @returns {promise} Returns a promise to return the result
-   */
-  processInput (answer) {
-    return this.menu.find(answer, (queries) => queries.slice(0, 1));
+    this.pipeline = this.createPipeline();
   }
 
   /**
    * Quit
    * Closes the app and writes a goodbye message.
+   *
+   * @method
+   * @public
    */
   quit () {
-    if (this.props.app) {
-      this.props.app.emit('complete', this.select('files'));
-    }
-    this.props.stdin.pause();
+    this.emit('complete', this.select('files'));
   }
 
-  route (creator, type, data) {
-    let { value } = data;
+  /**
+   * Route
+   * Routes the actions from the pipeline to navigation or error events.
+   *
+   * @param {stream} stream - Writable stream at the end of the pipeline
+   * @param {object} action - Final action passed to router
+   */
+  route (stream, action) {
+    let value = action.data;
 
-    switch (value) {
-      case null:
-        return false;
+    switch (action.type) {
+      case 'navigate':
+        switch (action.data) {
+          case 'blank':
+            stream.end();
+            this.reprompt();
+            break;
 
-      case 'quit':
-        this.quit();
-        return true;
+          case 'quit':
+            this.quit();
+            break;
 
-      case 'help':
-        this.showHelp();
-        return false;
+          case 'help':
+            stream.end();
+            this.showHelp();
+            this.reprompt();
+            break;
 
-      default:
-        this.navigate(value);
-        return true;
+          default:
+            stream.end();
+            this.navigate(value);
+            break;
+        }
+        break;
+
+      case 'error':
+        stream.end();
+        this.displayError(action.data);
+        break;
     }
   }
 
@@ -143,7 +154,7 @@ export default class IndexPage extends Page {
           glob: 'Input a glob string then selected from matches',
           changed: 'Select files from git diff --name-only',
           help: 'Uhhh... this thing I guess...',
-          quit: 'Forward files along'
+          quit: 'Forward files along',
         },
         text = 'HELP\n';
 
@@ -167,21 +178,32 @@ export default class IndexPage extends Page {
    * @returns {Promise} Returns a promise object chained to the prompt
    */
   showPrompt () {
-    let to = this.pipeTo;
-
     return this.prompt.beckon(this.question)
-      .pipe(to(new QueriesTransform({
-        maxQueries: 1
-      })))
-      .pipe(to(new MenuTransform({
-        choices: this.menu.options(),
-        canUnselect: false
-      })))
-      .pipe(to(new Dispatcher({
+      .pipe(this.pipeline)
+      .pipe(new Dispatcher(this.route));
+  }
+
+  /**
+   * Workflow
+   * Returns the steps in the pipeline to send to labeled stream splicer.
+   *
+   * @method
+   * @public
+   * @returns {object} named steps in the pipeline
+   */
+  workflow () {
+    return {
+      query: new QueriesTransform({
+        maxQueries: 1,
+      }),
+      menu: new MenuTransform({
+        menu: this.menu,
+        canUnselect: false,
+      }),
+      dispatch: new DispatchTransform({
         store: this.props.store,
-        route: this.route
-      })))
-      .then(this.reprompt);
+      }),
+    };
   }
 
   /**

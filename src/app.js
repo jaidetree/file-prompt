@@ -130,7 +130,7 @@ export default class App extends Component {
 
     this.setState({
       pageName: currentPage.name,
-      pageProps: currentPage.props
+      pageProps: currentPage.props,
     });
   }
 
@@ -149,7 +149,7 @@ export default class App extends Component {
       if (currentPage.isNavigating) {
         this.setState({
           pageName: currentPage.name,
-          pageProps: currentPage.props
+          pageProps: currentPage.props,
         });
         Component.display(this);
         this.store.dispatch(navigateComplete());
@@ -179,11 +179,12 @@ export default class App extends Component {
    */
   renderPage () {
     let props = {
-      app: this,
-      store: this.store,
-      stdin: this.props.stdin,
-      stdout: this.props.stdout
-    };
+          app: this,
+          store: this.store,
+          stdin: this.props.stdin,
+          stdout: this.props.stdout,
+        },
+        page;
 
     if (!App.PAGES.hasOwnProperty(this.state.pageName)) {
       throw new Error(`App: Page does not exist “${this.state.pageName}”.`);
@@ -194,7 +195,17 @@ export default class App extends Component {
       Object.assign(props, this.state.pageProps);
     }
 
-    return new App.PAGES[this.state.pageName](props).render();
+    // Create the page instance with the passed props
+    page = new App.PAGES[this.state.pageName](props);
+
+    /**
+     * Add a listener on the index page to know when selections are complete
+     */
+    if (this.state.pageName === 'index') {
+      page.once('complete', this.emit.bind(this, 'complete'));
+    }
+
+    return page.render();
   }
 
   /**

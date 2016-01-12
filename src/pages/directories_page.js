@@ -1,6 +1,7 @@
 import colors from 'chalk';
 import fs from 'fs';
-import Dispatcher from '../streams/base_dispatcher';
+import Dispatcher from '../streams/dispatcher';
+import DispatchTransform from '../streams/dispatch_transform';
 import GenericTransform from '../streams/generic_transform';
 import MenuTransform from '../streams/menu_transform';
 import minimatch from 'minimatch-all';
@@ -53,13 +54,15 @@ export default class DirectoriesPage extends Page {
       acceptsMany: true,
       stdin: this.props.stdin,
       stdout: this.props.stdout,
-      app: this.props.app
+      app: this.props.app,
     });
 
     this.prompt = new Prompt({
       stdin: this.props.stdin,
-      stdout: this.props.stdout
+      stdout: this.props.stdout,
     });
+
+    this.pipeline = this.createPipeline();
   }
 
   /**
@@ -73,7 +76,7 @@ export default class DirectoriesPage extends Page {
   getInitialState () {
     return {
       selected: [],
-      targetDir: null
+      targetDir: null,
     };
   }
 
@@ -127,7 +130,7 @@ export default class DirectoriesPage extends Page {
           value: filepath,
           isSelected: selectedFiles.indexOf(filepath) > -1,
           // Make dir labels bold bold
-          label: isDirectory ? colors.bold(label) : label
+          label: isDirectory ? colors.bold(label) : label,
         };
       });
 
@@ -137,7 +140,7 @@ export default class DirectoriesPage extends Page {
         id: 1,
         name: '..',
         value: path.resolve(dir, '..'),
-        label: colors.bold('..')
+        label: colors.bold('..'),
       });
     }
 
@@ -154,16 +157,8 @@ export default class DirectoriesPage extends Page {
    */
   showPrompt () {
     return this.prompt.beckon(this.question)
-      .pipe(new QueriesTransform())
-      .pipe(new MenuTransform({
-        choices: this.menu.options()
-      }))
-      .pipe(new GenericTransform(this.processFile.bind(this)))
-      .pipe(new Dispatcher({
-        store: this.props.store,
-        route: this.route
-      }))
-      .then(this.reprompt);
+      .pipe(this.pipeline)
+      .pipe(new Dispatcher(this.route));
   }
 
   /**
@@ -193,9 +188,12 @@ export default class DirectoriesPage extends Page {
      * If directory change the transform action so that it does not get
      * selected in the store.
      */
-    if (stats.isDirectory()) {
+    if (stats.isDirectory() && transformAction.data.type === 'single') {
       selectedDir = filepath;
       transformAction.type = 'directory';
+    }
+    else if (stats.isDirectory()) {
+      return;
     }
 
     /**
@@ -214,11 +212,60 @@ export default class DirectoriesPage extends Page {
     stream.push(transformAction);
   }
 
-  route () {
-    if (this.state.targetDir) {
-      this.navigate('directories', { base: this.state.targetDir });
-      return true;
+  /**
+   * Route
+   * Routes the actions from the pipeline to navigation or error events.
+   *
+   * @param {stream} stream - Writable stream at the end of the pipeline
+   * @param {object} action - Final action passed to router
+   */
+  route (stream, action) {
+    switch (action.type) {
+      case 'navigate':
+        switch (action.data) {
+          case 'blank':
+            stream.end();
+            this.navigate('index');
+            break;
+
+          case 'all':
+            this.navigate('index');
+            break;
+
+          default:
+            stream.end();
+            this.navigate('directories', { base: this.state.targetDir });
+            break;
+        }
+        break;
+
+      case 'done':
+        this.reprompt();
+        break;
     }
+  }
+
+  /**
+   * Workflow
+   * Returns the steps in the pipeline to send to labeled stream splicer.
+   *
+   * @method
+   * @public
+   * @returns {object} named steps in the pipeline
+   */
+  workflow () {
+    return {
+      query: new QueriesTransform(),
+      menu: new MenuTransform({
+        menu: this.menu,
+      }),
+      process: new GenericTransform(
+        this.processFile.bind(this)
+      ),
+      dispatch: new DispatchTransform({
+        store: this.props.store,
+      }),
+    };
   }
 
   renderMenu () {

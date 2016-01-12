@@ -23,7 +23,7 @@ export default class StdinReader extends Readable {
    * @constructor
    * @param {object} options - Options to initialize the readable stream with
    */
-  constructor (options) {
+  constructor (options={}) {
     super({ objectMode: true });
 
     this.stdin.setEncoding('utf8');
@@ -40,6 +40,9 @@ export default class StdinReader extends Readable {
    * @public
    */
   addListeners () {
+    /** Remove the last stdin data listener */
+    this.stdin.removeAllListeners('data');
+
     /**
      * Sets a listener for the data event which is fired when user
      * presses enter after typing stuff
@@ -48,25 +51,13 @@ export default class StdinReader extends Readable {
       this.push(new TransformAction({
         creator: 'prompt',
         type: 'string',
-        data: String(data).trim()
+        data: String(data).trim(),
       }));
+      this.stdin.pause();
       this.push(null);
     });
 
-    /**
-     * Get the last data listener
-     */
-    this.listener = this.stdin.listeners('data').pop();
-
-    /**
-     * Triggered when we've pushed a null from valid input
-     */
-    this.once('end', () => {
-      /** Remove the last stdin data listener */
-      this.stdin.removeListener('data', this.listener);
-      this.listener = null;
-      this.stdin.pause();
-    });
+    this.listener = true;
   }
 
   /**

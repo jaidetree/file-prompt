@@ -1,7 +1,6 @@
 import bindMethods from '../util/bind_methods';
 import TransformAction from '../transform_action';
 import { Transform } from 'stream';
-import { MatchError } from '../errors';
 
 /**
  * Generic Transform
@@ -62,7 +61,6 @@ export default class BaseTransform extends Transform {
    */
   commit (data) {
     this.pushAction(data);
-    this.finish();
   }
 
   /**
@@ -96,17 +94,6 @@ export default class BaseTransform extends Transform {
   }
 
   /**
-   * Finish
-   * Tells the stream we are done emitting data and to fire the end event.
-   *
-   * @method
-   * @public
-   */
-  finish () {
-    this.push(null);
-  }
-
-  /**
    * Match Error
    * Pushes a match error down the stream. This is used when the raw input
    * is invalid or no matches were found.
@@ -116,7 +103,7 @@ export default class BaseTransform extends Transform {
    * @param {string} searchFor - Original query value
    */
   matchError (searchFor) {
-    this.pushError(new MatchError(searchFor.toString()));
+    this.pushError(searchFor.toString());
   }
 
   /**
@@ -142,9 +129,8 @@ export default class BaseTransform extends Transform {
   pushError (err) {
     this.pushAction({
       type: 'error',
-      data: err
+      data: err,
     });
-    this.finish();
   }
 
   /**
@@ -169,7 +155,6 @@ export default class BaseTransform extends Transform {
    */
   transform (input) {
     this.push(input);
-    this.finish();
   }
 
   /**

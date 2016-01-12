@@ -5,7 +5,7 @@ export default class QueriesTransform extends BaseTransform {
   name = 'queries';
   filters = {
     creator: 'prompt',
-    type: 'string'
+    type: 'string',
   };
 
   /**
@@ -30,7 +30,7 @@ export default class QueriesTransform extends BaseTransform {
    */
   getParams (options) {
     return {
-      maxQueries: options.maxQueries || 0
+      maxQueries: options.maxQueries || 0,
     };
   }
 
@@ -64,7 +64,7 @@ export default class QueriesTransform extends BaseTransform {
     let queries = [],
         searchFor = transformAction.data,
         params = {
-          maxQueries: this.params.maxQueries
+          maxQueries: this.params.maxQueries,
         };
 
     /**
@@ -77,15 +77,15 @@ export default class QueriesTransform extends BaseTransform {
         type: 'action', // As it's not a file just an empty action
         data: {
           operation: 'blank',
-          value: null
+          value: null,
         },
         params: {
-          queryCount: 1
-        }
+          queryCount: 1,
+        },
       });
     }
 
-    if (!Query.isValid(searchFor)) return this.matchError('1:' + searchFor);
+    if (!Query.isValid(searchFor)) return this.matchError(searchFor);
 
     /** Update the queries options */
     queries = Query.createFrom(searchFor);
@@ -95,7 +95,7 @@ export default class QueriesTransform extends BaseTransform {
      * than zero then make sure the number of resulting queries is within
      * that range.
      */
-    if (this.isTooManyQueries(queries)) return this.matchError('2:' + searchFor);
+    if (this.isTooManyQueries(queries)) return this.matchError(searchFor);
 
     // Update the query count so it's available
     params.queryCount = queries.length;
@@ -105,10 +105,8 @@ export default class QueriesTransform extends BaseTransform {
       this.pushAction({
         type: 'query',
         data: query,
-        params
+        params,
       });
     });
-
-    this.finish();
   }
 }

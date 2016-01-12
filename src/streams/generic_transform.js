@@ -33,7 +33,7 @@ export default class GenericTransform extends Transform {
     this.push({
       creator: 'generic-transformer',
       type: 'error',
-      data: err
+      data: err,
     });
     this.push(null);
   }

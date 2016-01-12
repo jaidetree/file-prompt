@@ -38,17 +38,109 @@ export default class Menu extends Component {
     return {
       options: [],
       stdout: process.stdout,
-      stdin: process.stdin
+      stdin: process.stdin,
     };
   }
 
   getInitialState () {
+    let options = this.props.options;
+
     return {
-      options: this.props.options || []
+      options: options || [],
+      ids: options ? options.map((opt) => opt.id) : [],
     };
   }
 
   /** HELPER METHODS */
+
+  /**
+   * Filter
+   * Iterates through each chocie and returns a new array
+   *
+   * @method
+   * @public
+   * @param {function} callback - Callback to iterate on each item
+   * @param {object} [context] - Optional context to send with callback
+   * @returns {array} Filtered result arrray
+   */
+  filter (callback, context=this) {
+    return this.options().filter(callback, context);
+  }
+
+  /**
+   * Get Choice By Id
+   * Returns a choice by the given id
+   *
+   * @method
+   * @public
+   * @param {int} id - Id to search through choices for
+   * @returns {object} Choice by that given id
+   */
+  getChoiceById (id) {
+    /**
+     * Throw a serious error if this fails, it is only used internally
+     */
+    if (!this.hasId(id)) {
+      throw new Error(`Menu.getChoiceById: Could not find chocie by id "${id}"`);
+    }
+    return this.options()[this.state.ids.indexOf(id)];
+  }
+
+  /**
+   * Get Choice By Name
+   * Searches through all our options looking for
+   *
+   * @param {Query} query - Query to search for
+   * @returns {array} Array of matching ids
+   */
+  getChoiceByName (query) {
+    let results = this.filter((option) => query.isStartOf(option.name));
+
+    /**
+     * If the results are 0 or more than 1 return an empty array because
+     * name searches need to match only 1 item to be valid.
+     */
+    if (results.length !== 1) return [];
+
+    return results.map((option) => option.id);
+  }
+
+  /**
+   * Has Id
+   * Returns boolean if a choice by that id exists.
+   *
+   * @method
+   * @public
+   * @param {int} id - Id to look for
+   * @returns {boolean} True if id was found
+   */
+  hasId (id) {
+    return this.state.ids.indexOf(Number(id)) > -1;
+  }
+
+  /**
+   * Ids
+   * Returns a list of ids from the state
+   *
+   * @method
+   * @public
+   * @returns {array} Array of option ids
+   */
+  ids () {
+    return this.state.ids;
+  }
+
+  /**
+   * Map
+   * Iterates through each choice and returns a new array of the same size
+   *
+   * @param {function} callback - Callback to iterate on each item
+   * @param {object} [context] - Optional context to send with callback
+   * @returns {array} Mapped result arrray
+   */
+  map (callback, context=this) {
+    return this.options().map(callback, context);
+  }
 
   /**
    * Options
@@ -71,7 +163,10 @@ export default class Menu extends Component {
    * @param {object} options - New options to display & filter
    */
   setOptions (options) {
-    this.setState({ options });
+    this.setState({
+      options,
+      ids: options.map((opt) => opt.id),
+    });
   }
 
   /** RENDER METHODS */
