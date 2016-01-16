@@ -55,7 +55,8 @@ gulp.task('test', ['test:mocha']);
 gulp.task('watch:test', () => {
   return watch(paths.watch, (file) => {
     require.cache = {};
-    log.task('Cleared')
+    log.task('test')
+      .action('Cleared')
       .data(file.relative)
       .text('From cache')
       .send();
