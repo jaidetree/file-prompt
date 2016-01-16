@@ -13,7 +13,7 @@ import App from './app';
  */
 export default function fileprompt (options={}) {
   let app = new App(Object.assign({
-    base: __dirname
+    base: __dirname,
   }, options));
 
   app.props.stdout.write('\n');

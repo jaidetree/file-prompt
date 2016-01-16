@@ -202,7 +202,7 @@ export default class Query {
    */
   parse () {
     let data = {
-          action: 'select'
+          action: 'select',
         },
         query = this.query;
 

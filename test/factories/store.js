@@ -5,14 +5,14 @@ import { createStore } from 'redux';
 export default class StoreFactory {
   static defaults = {
     config: {
-      basedir: path.resolve(__dirname, '..', '..')
+      base: path.resolve(__dirname, '..', '..'),
     },
     files: [],
     currentPage: {
       name: 'index',
-      props: {}
+      props: {},
     },
-    glob: '**/*.js'
+    glob: '**/*.js',
   };
 
   static create (data={}) {

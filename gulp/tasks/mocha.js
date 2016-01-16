@@ -22,7 +22,7 @@ paths.src = project.to('test', '*.js');
 paths.dir = project.to('test');
 paths.watch = [
   project.paths.js.src,
-  paths.src
+  paths.src,
 ];
 
 /**

@@ -1,4 +1,5 @@
 import bindMethods from '../util/bind_methods';
+import stripAnsi from 'strip-ansi';
 import TransformAction from '../transform_action';
 import { Transform } from 'stream';
 
@@ -103,7 +104,13 @@ export default class BaseTransform extends Transform {
    * @param {string} searchFor - Original query value
    */
   matchError (searchFor) {
-    this.pushError(searchFor.toString());
+    let err = stripAnsi(searchFor.toString()).trim();
+
+    /** Format the match error */
+    if (err) err = ` (${err})`;
+    err = `Huh${err}?`;
+
+    this.pushError(err);
   }
 
   /**

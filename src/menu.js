@@ -90,11 +90,11 @@ export default class Menu extends Component {
    * Get Choice By Name
    * Searches through all our options looking for
    *
-   * @param {Query} query - Query to search for
+   * @param {string} name - Name partial to find
    * @returns {array} Array of matching ids
    */
-  getChoiceByName (query) {
-    let results = this.filter((option) => query.isStartOf(option.name));
+  getChoiceByName (name) {
+    let results = this.filter((option) => option.name.startsWith(name));
 
     /**
      * If the results are 0 or more than 1 return an empty array because

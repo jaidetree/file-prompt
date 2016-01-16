@@ -11,7 +11,7 @@ const DEFINED_METHODS = [
   'componentDidMount',
   'componentWillUnmount',
   'renderPage',
-  'render'
+  'render',
 ];
 
 class TestComponent extends Component {
@@ -59,7 +59,7 @@ describe('App', () => {
 
     it('Should render the index page by default', () => {
       let app = new App({
-            initialPage: 'index'
+            initialPage: 'index',
           }),
           ceptor = new StdoutInterceptor();
 

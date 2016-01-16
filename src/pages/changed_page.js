@@ -1,5 +1,6 @@
 import colors from 'chalk';
 import Dispatcher from '../streams/dispatcher';
+import DispatchTransform from '../streams/dispatch_transform';
 import MenuTransform from '../streams/menu_transform';
 import minimatch from 'minimatch-all';
 import Page from '../page';
@@ -51,13 +52,15 @@ export default class ChangedPage extends Page {
       acceptsMany: true,
       stdin: this.props.stdin,
       stdout: this.props.stdout,
-      app: this.props.app
+      app: this.props.app,
     });
 
     this.prompt = new Prompt({
       stdin: this.props.stdin,
-      stdout: this.props.stdout
+      stdout: this.props.stdout,
     });
+
+    this.pipeline = this.createPipeline();
   }
 
   /**
@@ -70,7 +73,7 @@ export default class ChangedPage extends Page {
    */
   getInitialState () {
     return {
-      files: this.getFiles(this.getGlob())
+      files: this.getFiles(this.getGlob()),
     };
   }
 
@@ -93,7 +96,7 @@ export default class ChangedPage extends Page {
         label: path.relative(basedir, filename),
         name: filename,
         value: filename,
-        isSelected: selectedFiles.indexOf(filename) > -1
+        isSelected: selectedFiles.indexOf(filename) > -1,
       };
     }) || [];
   }
@@ -125,28 +128,74 @@ export default class ChangedPage extends Page {
   }
 
   /**
+   * Route
+   * Routes the actions from the pipeline to navigation or error events.
+   *
+   * @param {stream} stream - Writable stream at the end of the pipeline
+   * @param {object} action - Final action passed to router
+   */
+  route (stream, action) {
+    switch (action.type) {
+      case 'navigate':
+        switch (action.data) {
+          case 'blank':
+            stream.end();
+            this.navigate('index');
+            break;
+
+          case 'all':
+            this.navigate('index');
+            break;
+        }
+        break;
+
+      case 'done':
+        this.reprompt();
+        break;
+
+      case 'error':
+        this.displayError(action.data);
+        break;
+    }
+  }
+
+  /**
    * Show Prompt
    * Beckons the prompt
    *
    * @method
    * @public
-   * @returns {Stream|null} A duplex stream for processing the found files
+   * @returns {stream} The resulting writable dispatcher stream.
    */
   showPrompt () {
     if (this.menu.options().length === 0) {
-      process.stderr.write(colors.bold.red('No files have been changed since last git commit.\n'));
+      this.props.stdout.write(colors.bold.red('No files have been changed since last git commit.\n'));
       return this.navigate('index');
     }
 
     return this.prompt.beckon(this.question)
-      .pipe(new QueriesTransform())
-      .pipe(new MenuTransform({
-        choices: this.menu.options()
-      }))
-      .pipe(new Dispatcher({
-        store: this.props.store
-      }))
-      .then(this.reprompt);
+      .pipe(this.pipeline)
+      .pipe(new Dispatcher(this.route));
+  }
+
+  /**
+   * Workflow
+   * Returns the steps in the pipeline to send to labeled stream splicer.
+   *
+   * @method
+   * @public
+   * @returns {object} named steps in the pipeline
+   */
+  workflow () {
+    return {
+      query: new QueriesTransform(),
+      menu: new MenuTransform({
+        menu: this.menu,
+      }),
+      dispatch: new DispatchTransform({
+        store: this.props.store,
+      }),
+    };
   }
 
   renderMenu () {

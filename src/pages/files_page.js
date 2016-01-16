@@ -1,5 +1,6 @@
 import glob from 'glob-all';
 import Dispatcher from '../streams/dispatcher';
+import DispatchTransform from '../streams/dispatch_transform';
 import MenuTransform from '../streams/menu_transform';
 import Page from '../page';
 import path from 'path';
@@ -50,13 +51,15 @@ export default class FilesPage extends Page {
       acceptsMany: true,
       stdin: this.props.stdin,
       stdout: this.props.stdout,
-      app: this.props.app
+      app: this.props.app,
     });
 
     this.prompt = new Prompt({
       stdin: this.props.stdin,
-      stdout: this.props.stdout
+      stdout: this.props.stdout,
     });
+
+    this.pipeline = this.createPipeline();
   }
 
   /**
@@ -90,9 +93,41 @@ export default class FilesPage extends Page {
           name: label,
           value: path.resolve(process.cwd(), filename),
           isSelected: selectedFiles.indexOf(filename) > -1,
-          label
+          label,
         };
       }) || [];
+  }
+
+  /**
+   * Route
+   * Routes the actions from the pipeline to navigation or error events.
+   *
+   * @param {stream} stream - Writable stream at the end of the pipeline
+   * @param {object} action - Final action passed to router
+   */
+  route (stream, action) {
+    switch (action.type) {
+      case 'navigate':
+        switch (action.data) {
+          case 'blank':
+            stream.end();
+            this.navigate('index');
+            break;
+
+          case 'all':
+            this.navigate('index');
+            break;
+        }
+        break;
+
+      case 'done':
+        this.reprompt();
+        break;
+
+      case 'error':
+        this.displayError(action.data);
+        break;
+    }
   }
 
   /**
@@ -101,30 +136,32 @@ export default class FilesPage extends Page {
    *
    * @method
    * @public
+   * @returns {stream} The resulting writable dispatcher stream.
    */
   showPrompt () {
-    this.prompt.beckon(this.question)
-      .pipe(new QueriesTransform())
-      .pipe(new MenuTransform({
-        choices: this.menu.options()
-      }))
-      .pipe(new Dispatcher({
-        store: this.props.store
-      }))
-      .then(this.reprompt);
+    return this.prompt.beckon(this.question)
+      .pipe(this.pipeline)
+      .pipe(new Dispatcher(this.route));
   }
 
   /**
-   * Process Input
-   * Deal with the answer from our prompt
+   * Workflow
+   * Returns the steps in the pipeline to send to labeled stream splicer.
    *
    * @method
    * @public
-   * @param {string} answer - User input value
-   * @returns {promise} Returns a promise to return the result
+   * @returns {object} named steps in the pipeline
    */
-  processInput (answer) {
-    return this.menu.find(answer);
+  workflow () {
+    return {
+      query: new QueriesTransform(),
+      menu: new MenuTransform({
+        menu: this.menu,
+      }),
+      dispatch: new DispatchTransform({
+        store: this.props.store,
+      }),
+    };
   }
 
   renderMenu () {

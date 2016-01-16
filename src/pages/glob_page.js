@@ -1,5 +1,6 @@
 import glob from 'glob-all';
 import Dispatcher from '../streams/dispatcher';
+import DispatchTransform from '../streams/dispatch_transform';
 import GenericTransform from '../streams/generic_transform';
 import MenuTransform from '../streams/menu_transform';
 import Page from '../page';
@@ -49,13 +50,15 @@ export default class GlobPage extends Page {
       acceptsMany: true,
       stdin: this.props.stdin,
       stdout: this.props.stdout,
-      app: this.props.app
+      app: this.props.app,
     });
 
     this.prompt = new Prompt({
       stdin: this.props.stdin,
-      stdout: this.props.stdout
+      stdout: this.props.stdout,
     });
+
+    this.pipeline = this.createPipeline();
   }
 
   /** LIFECYCLE METHODS */
@@ -71,7 +74,7 @@ export default class GlobPage extends Page {
   getInitialState () {
     return {
       files: [],
-      filter: null
+      filter: null,
     };
   }
 
@@ -109,7 +112,7 @@ export default class GlobPage extends Page {
         label: path.relative(basedir, filename),
         name: filename,
         value: filename,
-        isSelected: selectedFiles.indexOf(filename) > -1
+        isSelected: selectedFiles.indexOf(filename) > -1,
       };
     }) || [];
   }
@@ -159,14 +162,15 @@ export default class GlobPage extends Page {
     files = this.getFiles(input);
 
     if (!files.length) {
-      return stream.pushError(new Error(`No files matched the glob string "${input}"`));
+      return stream.pushError(`No files matched the glob string "${input}"`);
     }
 
     this.setState({
       filter: input,
-      files
+      files,
     });
 
+    /** end the stream */
     stream.push(null);
   }
 
@@ -192,35 +196,82 @@ export default class GlobPage extends Page {
   }
 
   /**
+   * Route
+   * Routes the actions from the pipeline to navigation or error events.
+   *
+   * @param {stream} stream - Writable stream at the end of the pipeline
+   * @param {object} action - Final action passed to router
+   */
+  route (stream, action) {
+    switch (action.type) {
+      case 'navigate':
+        switch (action.data) {
+          case 'blank':
+            stream.end();
+            this.navigate('index');
+            break;
+
+          case 'all':
+            this.navigate('index');
+            break;
+        }
+        break;
+
+      case 'done':
+        this.reprompt();
+        break;
+
+      case 'error':
+        this.displayError(action.data);
+        break;
+    }
+  }
+
+  /**
    * ShowPrompt
    * Beckons the prompt
    *
    * @method
    * @public
+   * @returns {stream} The resulting writable dispatcher stream.
    */
   showPrompt () {
+    return this.prompt.beckon(this.question())
+      .pipe(this.pipeline)
+      .pipe(new Dispatcher(this.route));
+  }
+
+  /**
+   * Workflow
+   * Returns the steps in the pipeline to send to labeled stream splicer.
+   *
+   * @method
+   * @public
+   * @returns {object} named steps in the pipeline
+   */
+  workflow () {
     /**
-     * If files have been found from the glob, lets
+     * If files have been found from the glob, then query against those
+     * matching files.
      */
     if (this.state.files.length) {
-      this.prompt.beckon(this.question())
-        .pipe(new QueriesTransform())
-        .pipe(new MenuTransform({
-          choices: this.menu.options()
-        }))
-        .pipe(new Dispatcher({
-          store: this.props.store
-        }))
-        .then(this.reprompt);
+      return {
+        query: new QueriesTransform(),
+        menu: new MenuTransform({
+          menu: this.menu,
+        }),
+        dispatch: new DispatchTransform({
+          store: this.props.store,
+        }),
+      };
     }
-    else {
-      this.prompt.beckon(this.question())
-        .pipe(new GenericTransform(this.processGlob.bind(this)))
-        .pipe(new Dispatcher({
-          store: this.props.store
-        }))
-        .on('finish', this.reprompt);
-    }
+
+    return {
+      glob: new GenericTransform(this.processGlob.bind(this)),
+      dispatch: new DispatchTransform({
+        store: this.props.store,
+      }),
+    };
   }
 
   /** RENDER METHODS */

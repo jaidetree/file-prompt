@@ -148,20 +148,6 @@ export default class DirectoriesPage extends Page {
   }
 
   /**
-   * Show Prompt
-   * Beckons the prompt
-   *
-   * @method
-   * @public
-   * @returns {Stream} A transform stream
-   */
-  showPrompt () {
-    return this.prompt.beckon(this.question)
-      .pipe(this.pipeline)
-      .pipe(new Dispatcher(this.route));
-  }
-
-  /**
    * Process File
    *
    * @method
@@ -242,7 +228,25 @@ export default class DirectoriesPage extends Page {
       case 'done':
         this.reprompt();
         break;
+
+      case 'error':
+        this.displayError(action.data);
+        break;
     }
+  }
+
+  /**
+   * Show Prompt
+   * Beckons the prompt
+   *
+   * @method
+   * @public
+   * @returns {stream} The resulting writable dispatcher stream.
+   */
+  showPrompt () {
+    return this.prompt.beckon(this.question)
+      .pipe(this.pipeline)
+      .pipe(new Dispatcher(this.route));
   }
 
   /**

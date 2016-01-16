@@ -1,6 +1,5 @@
 import colors from 'chalk';
 import BaseTransform from './base_transform';
-import stripAnsi from 'strip-ansi';
 import { addFile, removeFile } from '../actions';
 
 export default class Dispatch extends BaseTransform {
@@ -33,23 +32,19 @@ export default class Dispatch extends BaseTransform {
 
   /**
    * Format Error
-   * Formats an error message to display to the user
+   * Stylizes the error string to be red and adds a new line.
    *
    * @method
    * @public
-   * @param {string} searchFor - Original search param
-   * @returns {string} Formatted error message
+   * @param {string} err - Input error format
+   * @returns {string} Formatted error string
    */
-  formatError (searchFor) {
-    let cleanStr = stripAnsi(searchFor).trim();
-
-    if (cleanStr) cleanStr = ` (${cleanStr})`;
-
-    return colors.red.bold(`Huh${cleanStr}?`) + '\n';
+  formatError (err) {
+    return `${colors.red.bold(err)}\n`;
   }
 
   /**
-   * Route
+   * Process
    * Maps various transform actions into actual actions like selecting files
    * displaying error messages or forwarding to a router.
    *
@@ -96,7 +91,7 @@ export default class Dispatch extends BaseTransform {
   updateFile ({ type, operation, value }, params) {
     let action = operation === 'unselect' ? removeFile : addFile;
 
-    if (type === 'all' && params.queryCount === 1) {
+    if (type === 'all' && params.queryCount === 1 && operation === 'select') {
       this.action.type = 'navigate';
       this.action.data = 'all';
     }

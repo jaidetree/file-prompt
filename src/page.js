@@ -97,7 +97,6 @@ export default class Page extends Component {
    */
   displayError (err) {
     this.props.stdout.write(err);
-    this.reprompt();
   }
 
   /**
@@ -161,6 +160,7 @@ export default class Page extends Component {
     this.pipeline = this.createPipeline();
     this.renderComponent();
     Page.display(this);
+    this.emit('reprompt');
   }
 
   /**

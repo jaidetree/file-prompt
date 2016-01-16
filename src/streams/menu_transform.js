@@ -126,7 +126,7 @@ export default class MenuTransform extends BaseTransform {
 
       // Query is a string type so try to find a match by the name
       case 'string':
-        data = this.menu.getChoiceByName(query);
+        data = this.menu.getChoiceByName(query.toString());
         type = 'single';
         break;
     }

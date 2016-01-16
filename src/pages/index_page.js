@@ -117,6 +117,7 @@ export default class IndexPage extends Page {
             break;
 
           case 'quit':
+            stream.end();
             this.quit();
             break;
 
@@ -133,8 +134,11 @@ export default class IndexPage extends Page {
         }
         break;
 
+      case 'done':
+        this.reprompt();
+        break;
+
       case 'error':
-        stream.end();
         this.displayError(action.data);
         break;
     }
@@ -212,7 +216,7 @@ export default class IndexPage extends Page {
    *
    * @method
    * @public
-   * @returns {string} Intro text to display
+   * @returns {stream} The resulting writable dispatcher stream.
    */
   renderIntro () {
     let text = '',
