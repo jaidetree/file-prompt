@@ -193,8 +193,5 @@ describe('Index Page', () => {
 
       expect(page.renderMenu()).toBe('  1:     changed_page.js\n  2:     directories_page.js\n  3:     files_page.js\n  4:     glob_page.js\n  5:     index_page.js\n');
     });
-
   });
-
-
 });
