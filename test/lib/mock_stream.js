@@ -65,6 +65,7 @@ export default class MockStream extends Duplex {
    */
   push (...args) {
     this.output.push(args[0]);
+    this.emit('write', ...args);
     this.spies.push(...args);
     return super.push(...args);
   }
@@ -105,6 +106,7 @@ export default class MockStream extends Duplex {
   _write (data, enc, next) {
     // Store the input in our public buffer
     this.input.push(data);
+    this.emit('read', data);
 
     // Log the data to our spy
     this.spies.write(data, enc, next);

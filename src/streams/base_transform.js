@@ -14,6 +14,7 @@ import { Transform } from 'stream';
 export default class BaseTransform extends Transform {
   filters = {};
   params = {};
+  name = 'BaseTransform';
 
   /**
    * Constructor
@@ -51,20 +52,6 @@ export default class BaseTransform extends Transform {
   }
 
   /**
-   * Commit
-   * Creates an action and calls finish to signify no more data will be
-   * created from this stream.
-   *
-   * @method
-   * @public
-   * @param {*} data - Dated to be pushed
-   * @param {string|null} [type=null] Type of data to be pushed
-   */
-  commit (data) {
-    this.pushAction(data);
-  }
-
-  /**
    * Error Handler
    * Default handler for stream errors
    *
@@ -74,7 +61,7 @@ export default class BaseTransform extends Transform {
    */
   errorHandler (err) {
     process.stderr.write(`${err.stack || err.message}\n`);
-    process.exit(0);
+    process.exit(1);
   }
 
   /**

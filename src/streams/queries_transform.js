@@ -72,7 +72,7 @@ export default class QueriesTransform extends BaseTransform {
      * processing it and pass it down to the next thing
      */
     if (searchFor === "") {
-      return this.commit({
+      return this.pushAction({
         creator: 'menu',  // Create an empty menu selection action
         type: 'action', // As it's not a file just an empty action
         data: {

@@ -1,5 +1,6 @@
 import expect from 'expect';
 import { colors } from 'gulp-util';
+import { Readable } from 'stream';
 
 import Prompt from '../src/prompt';
 import MockStdin from './lib/mock_stdin';
@@ -10,7 +11,7 @@ const DEFINED_METHODS = [
         'beckon',
         'close',
         'formatPrompt',
-        'formatText'
+        'formatText',
       ],
       PROMPT_TEXT = 'Is this working';
 
@@ -62,68 +63,15 @@ describe('Prompt', () => {
   });
 
   describe('#beckon()', () => {
-    it('Should prompt the user for input', (done) => {
+    it('Should prompt the user for input', () => {
       let stdin = new MockStdin(['Test string']),
           stdout = new MockStdout(),
           prompt = new Prompt(PROMPT_TEXT, {
             stdout,
-            stdin
+            stdin,
           });
 
-      prompt.beckon()
-        .then((answer) => {
-          expect(answer).toBe('Test string');
-          stdout.write(answer);
-          expect(stdout.output).toBe('\x1b[34m\x1b[1mIs this working\x1b[22m\x1b[39m\x1b[35m\x1b[1m > \x1b[22m\x1b[39mTest string');
-        }, (e) => {
-          throw e;
-        })
-        .then(done, done);
-
-      stdin.emit('readable');
-    });
-
-    it('Should accept an empty response', (done) => {
-      let stdin = new MockStdin(['']),
-          stdout = new MockStdout(),
-          prompt = new Prompt(PROMPT_TEXT, {
-            stdout,
-            stdin
-          });
-
-      prompt.beckon()
-        .then((answer) => {
-          expect(answer).toNotExist();
-          stdout.write(answer);
-          expect(stdout.output).toBe('\x1b[34m\x1b[1mIs this working\x1b[22m\x1b[39m\x1b[35m\x1b[1m > \x1b[22m\x1b[39m');
-        }, (e) => {
-          throw e;
-        })
-        .then(done, done);
-
-      stdin.emit('readable');
-    });
-
-    it('Should fail when input stream is closed', (done) => {
-      let stdin = new MockStdin(['']),
-          stdout = new MockStdout(),
-          prompt = new Prompt(PROMPT_TEXT, {
-            stdout,
-            stdin
-          });
-
-      prompt.beckon()
-        .catch((err) => {
-          expect(err).toBe('Input stream closed.');
-        })
-        .then(done, done);
-
-      stdin.emit('readable');
-
-      stdin.end();
+      expect(prompt.beckon()).toBeA(Readable);
     });
   });
-
-
 });
-

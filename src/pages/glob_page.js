@@ -155,8 +155,8 @@ export default class GlobPage extends Page {
      * the index.
      */
     if (!input) {
+      stream.end();
       this.navigate('index');
-      stream.push(null);
     }
 
     files = this.getFiles(input);
@@ -169,9 +169,6 @@ export default class GlobPage extends Page {
       filter: input,
       files,
     });
-
-    /** end the stream */
-    stream.push(null);
   }
 
   /**

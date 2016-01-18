@@ -1,10 +1,9 @@
-import MockStdout from './lib/mock_stdout';
-import MockStdin from './lib/mock_stdin';
-import through from 'through2';
-
-import StdinReader from '../src/streams/stdin_reader.js';
 import expect from 'expect';
 
+import StdinReader from '../src/streams/stdin_reader.js';
+
+import MockStdin from './lib/mock_stdin';
+import through from 'through2';
 
 describe('Stdin Reader', () => {
   describe('constructor', () => {
@@ -129,6 +128,4 @@ describe('Stdin Reader', () => {
       .catch((err) => console.error(err.stack || err.message || err));
     });
   });
-
-
 });
