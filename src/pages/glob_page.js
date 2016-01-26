@@ -138,14 +138,14 @@ export default class GlobPage extends Page {
    * @public
    * @param {Stream} stream - Generic transform stream
    * @param {object} transformAction - Stdin input value
-   * @returns {*} Returns are used for control flow in this function.
    */
   processGlob (stream, transformAction) {
     let input, files = [],
         { type, creator } = transformAction;
 
     if (type !== 'string' || creator !== 'prompt') {
-      return stream.push(transformAction);
+      stream.push(transformAction);
+      return;
     }
 
     input = transformAction.data;
@@ -155,14 +155,19 @@ export default class GlobPage extends Page {
      * the index.
      */
     if (!input) {
-      stream.end();
-      this.navigate('index');
+      stream.destroy();
+      // this.navigate('index');
+      transformAction.type = 'navigate';
+      transformAction.data = { value: 'blank' };
+      stream.push(transformAction);
+      return;
     }
 
     files = this.getFiles(input);
 
     if (!files.length) {
-      return stream.pushError(`No files matched the glob string "${input}"`);
+      stream.pushError(`No files matched the glob string "${input}"`);
+      return;
     }
 
     this.setState({

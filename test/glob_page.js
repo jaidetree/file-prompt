@@ -68,7 +68,7 @@ describe('GlobPage', () => {
     it('Should navigate to index on empty input', () => {
       let page = createPage(),
           stream = new MockStream(),
-          spy = expect.spyOn(page, 'navigate');
+          action;
 
       page.processGlob(stream, {
         creator: 'prompt',
@@ -76,8 +76,10 @@ describe('GlobPage', () => {
         data: '',
       });
 
-      expect(spy).toHaveBeenCalled();
-      expect(spy).toHaveBeenCalledWith('index');
+      action = stream.first();
+
+      expect(action.type).toBe('navigate');
+      expect(action.data.value).toBe('blank');
     });
 
     it('Should push an error if no files match the glob', () => {

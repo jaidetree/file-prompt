@@ -39,6 +39,23 @@ export default class MockStream extends Duplex {
   }
 
   /**
+   * Destroys the transform with an optional err param
+   *
+   * @param {string} err - Reason for destroying the stream from error
+   */
+  destroy (err) {
+    if (this.isDestroyed) return;
+
+    this.isDestroyed = true;
+
+    process.nextTick(() => {
+      if (err) this.emit('error', err);
+
+      this.emit('close');
+    });
+  }
+
+  /**
    * Feed data into the data buffer
    *
    * @param {array} data - More data to feed the internal data buffer with
@@ -48,12 +65,23 @@ export default class MockStream extends Duplex {
   }
 
   /**
+   * Returns the first item for the given key
+   *
+   *
+   * @param {string} name - Input or output
+   * @returns {*} The first collected input or output entry
+   */
+  first (name='output') {
+    return this[name][0];
+  }
+
+  /**
    * Returns concated stream from the named buffer input or output
    *
    * @param {string} name - Name of the buffer to return "input" or "output"
    * @returns {string} All data stored in the buffer
    */
-  get (name) {
+  get (name='output') {
     return this[name].join('');
   }
 

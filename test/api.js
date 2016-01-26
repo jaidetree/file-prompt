@@ -3,7 +3,6 @@ import expect from 'expect';
 import MockStdin from './lib/mock_stdin';
 import MockStdout from './lib/mock_stdout';
 import path from 'path';
-import StdoutInterceptor from './lib/stdout_interceptor';
 
 describe('FilePrompt', () => {
   it('Should select 2 files from the src directory', (done) => {

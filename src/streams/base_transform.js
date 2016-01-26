@@ -15,6 +15,7 @@ export default class BaseTransform extends Transform {
   filters = {};
   params = {};
   name = 'BaseTransform';
+  isDestroyed = false;
 
   /**
    * Constructor
@@ -49,6 +50,23 @@ export default class BaseTransform extends Transform {
     if (!data.creator) data.creator = this.name;
 
     return new TransformAction(data);
+  }
+
+  /**
+   * Destroys the transform with an optional err param
+   *
+   * @param {string} err - Reason for destroying the stream from error
+   */
+  destroy (err) {
+    if (this.isDestroyed) return;
+
+    this.isDestroyed = true;
+
+    process.nextTick(() => {
+      if (err) this.emit('error', err);
+
+      this.emit('close');
+    });
   }
 
   /**

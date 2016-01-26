@@ -84,17 +84,17 @@ describe('Menu', () => {
     });
   });
 
-  describe('#getChoiceByName()', () => {
+  describe('#getIdByName()', () => {
     it('Should return an array with matching value', () => {
       let menu = createMenu();
 
-      expect(menu.getChoiceByName('files')).toEqual([2]);
+      expect(menu.getIdByName('files')).toEqual([2]);
     });
 
     it('Should return an empty array if name matches more than 1 option', () => {
       let menu = createMenu();
 
-      expect(menu.getChoiceByName('gl')).toEqual([]);
+      expect(menu.getIdByName('gl')).toEqual([]);
     });
   });
 

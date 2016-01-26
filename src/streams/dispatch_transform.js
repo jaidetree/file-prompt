@@ -2,7 +2,7 @@ import colors from 'chalk';
 import BaseTransform from './base_transform';
 import { addFile, removeFile } from '../actions';
 
-export default class Dispatch extends BaseTransform {
+export default class DispatchTransform extends BaseTransform {
   name = 'dispatch';
 
   /**

@@ -87,13 +87,13 @@ export default class Menu extends Component {
   }
 
   /**
-   * Get Choice By Name
+   * Get Id By Name
    * Searches through all our options looking for
    *
    * @param {string} name - Name partial to find
    * @returns {array} Array of matching ids
    */
-  getChoiceByName (name) {
+  getIdByName (name) {
     let results = this.filter((option) => option.name.startsWith(name));
 
     /**
