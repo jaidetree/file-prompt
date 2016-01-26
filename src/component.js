@@ -23,7 +23,7 @@ function createListener (obj, event, callback, context) {
     event,
     handler,
     callback,
-    context
+    context,
   };
 }
 
@@ -386,11 +386,11 @@ export default class Component extends EventEmitter {
   set (key, data, callback) {
     let prev = {
           props: _.clone(this.props),
-          state: _.clone(this.state)
+          state: _.clone(this.state),
         },
         next = {
           props: _.clone(this.props),
-          state: _.clone(this.state)
+          state: _.clone(this.state),
         };
 
     /** Get what the next set of data would be */

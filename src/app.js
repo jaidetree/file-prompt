@@ -72,17 +72,17 @@ export default class App extends Component {
     super(props);
     this.store = createStore(reducers, {
       config: {
-        base: this.props.base
+        base: this.props.base,
       },
       files: [],
       glob: this.props.glob,
       currentPage: {
         name: 'index',
         props: {
-          glob: this.props.glob
+          glob: this.props.glob,
         },
-        isNavigating: false
-      }
+        isNavigating: false,
+      },
     });
   }
 
@@ -99,14 +99,14 @@ export default class App extends Component {
       base: process.cwd(),
       filter: '**/*.js',
       stdin: process.stdin,
-      stdout: process.stdout
+      stdout: process.stdout,
     };
   }
 
   getInitialState () {
     return {
       pageName: null,
-      pageProps: null
+      pageProps: null,
     };
   }
 
