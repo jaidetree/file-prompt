@@ -34,7 +34,7 @@ describe('Query', () => {
         '1-3',
         '-4-6',
         '56-934',
-        '43-24'
+        '43-24',
       ]);
     });
 
@@ -64,7 +64,7 @@ describe('Query', () => {
 
       expect(numbers).toBeA('array');
       expect(numbers.length).toBe(2);
-      expect(numbers.join('\n').split('\n')).toEqual([5, 55]);
+      expect(numbers).toEqual([5, 55]);
     });
   });
 
