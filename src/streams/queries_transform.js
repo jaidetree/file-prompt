@@ -46,9 +46,9 @@ export default class QueriesTransform extends BaseTransform {
    * @returns {boolean} True if queries are at an acceptable length
    */
   isTooManyQueries (queries) {
-    let length = queries.length;
+    let maxQueries = this.params.maxQueries;
 
-    return this.params.maxQueries > 0 && length > this.params.maxQueries;
+    return maxQueries > 0 && queries.length > maxQueries;
   }
 
   /**
@@ -58,7 +58,6 @@ export default class QueriesTransform extends BaseTransform {
    * @method
    * @public
    * @param {object} transformAction - Transform action from incoming stream
-   * @returns {*} Return values are ignored
    */
   transform (transformAction) {
     let queries = [],
@@ -72,7 +71,7 @@ export default class QueriesTransform extends BaseTransform {
      * processing it and pass it down to the next thing
      */
     if (searchFor === "") {
-      return this.pushAction({
+      this.pushAction({
         creator: 'menu',  // Create an empty menu selection action
         type: 'action', // As it's not a file just an empty action
         data: {
@@ -83,9 +82,13 @@ export default class QueriesTransform extends BaseTransform {
           queryCount: 1,
         },
       });
+      return;
     }
 
-    if (!Query.isValid(searchFor)) return this.matchError(searchFor);
+    if (!Query.isValid(searchFor)) {
+      this.matchError(searchFor);
+      return;
+    }
 
     /** Update the queries options */
     queries = Query.createFrom(searchFor);
@@ -95,7 +98,10 @@ export default class QueriesTransform extends BaseTransform {
      * than zero then make sure the number of resulting queries is within
      * that range.
      */
-    if (this.isTooManyQueries(queries)) return this.matchError(searchFor);
+    if (this.isTooManyQueries(queries)) {
+      this.matchError(searchFor);
+      return;
+    }
 
     // Update the query count so it's available
     params.queryCount = queries.length;

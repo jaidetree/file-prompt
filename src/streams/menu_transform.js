@@ -195,9 +195,9 @@ export default class MenuTransform extends BaseTransform {
         return {
           type: isPath ? 'file' : 'page',
           data: {
-            operation: query.action,
+            operation: query.data.action,
             value: choice,
-            type: query.type,
+            type: query.data.type,
           },
           params,
         };

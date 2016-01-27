@@ -370,6 +370,8 @@ describe('MenuTransform', () => {
 
       expect(action.type).toBe('file');
       expect(action.data.value).toBe(path.join(__dirname, 'one.js'));
+      expect(action.data.type).toBe('single');
+      expect(action.data.operation).toBe('select');
     });
 
     it('Should push an error if id does not exist', () => {
