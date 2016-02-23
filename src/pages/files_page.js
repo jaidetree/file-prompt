@@ -81,7 +81,16 @@ export default class FilesPage extends Page {
 
     // Prepend the basedir to each glob
     globs = globs.map((globStr) => {
-      return path.join(basedir, globStr);
+      let prefix = '',
+          suffix = globStr;
+
+      /** Make sure negated patterns are still negated */
+      if (suffix.slice(0, 1) === '!') {
+        prefix = '!';
+        suffix = suffix.slice(1);
+      }
+
+      return prefix + path.join(basedir, suffix);
     });
 
     return glob.sync(globs, { cwd: process.cwd() })
